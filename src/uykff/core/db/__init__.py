@@ -3,7 +3,7 @@ from logging import debug
 
 from sqlalchemy.engine import create_engine
 
-from uykff.core.db.schema import Base
+from uykff.core.db.catalogue import Base
 
 
 def startup(config):
