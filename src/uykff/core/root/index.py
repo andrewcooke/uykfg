@@ -2,14 +2,11 @@
 from cherrypy import tools
 
 from uykff.core.support.io import parent
-from uykff.core.web.mustache import view
+from uykff.core.web.mustache import mustache
 
 
-STATIC = 'static'
-
-
-@tools.staticdir(dir=STATIC, root=parent(__file__))
-@view(__name__)
+@tools.staticdir(dir='static', root=parent(__file__))
+@mustache(__name__)
 def index():
     return {}
 

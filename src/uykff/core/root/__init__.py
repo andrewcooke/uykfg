@@ -13,7 +13,7 @@ from logging import info
 
 from cherrypy import server, engine, tree
 
-from uykff.core.root import index
+from uykff.core.root.index import index
 
 
 def startup(config):

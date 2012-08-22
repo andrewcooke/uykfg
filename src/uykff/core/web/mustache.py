@@ -27,7 +27,7 @@ class TemplateCache:
 __CACHE = TemplateCache()
 
 
-def view(name, file=None):
+def mustache(name, file=None):
     '''
     Call as either `@view(__name__)` or as `@view(__name__, 'alternate_file')`.
     '''
