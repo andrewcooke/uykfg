@@ -1,17 +1,29 @@
 
+'''
+The interface should have as few different URLs as possible.
+
+The root should be an interesting mish-mash that shows what is playing
+and allows exploration of related and new music.
+
+In addition, components that need configuration will need to provide their
+own pages.
+'''
+
 from logging import info
 
 from cherrypy import server, engine, tree
 
-from uykff.core.web.catalogue_mgmt import catalogue_mgmt
-from uykff.core.web.now_playing import now_playing
+from uykff.core.web.index import index
+from uykff.core.web.view import Templates
+
+
+Templates.register(__name__, __file__)
 
 
 def startup(config):
     server.socket_host = config.web_address
     server.socket_port = config.web_port
-    tree.mount(now_playing)
-    tree.mount(catalogue_mgmt, '/catalogue')
+    tree.mount(index)
     info('starting server on %s:%d' % (config.web_address, config.web_port))
     engine.start()
     engine.block()

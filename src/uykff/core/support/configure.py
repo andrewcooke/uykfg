@@ -11,6 +11,7 @@ are given in the created file).
 '''
 
 from configparser import ConfigParser
+from importlib import import_module
 from logging import basicConfig
 from io import StringIO
 from sys import stderr
@@ -22,6 +23,7 @@ UYKFF_DIR, HOME, UYKFFRC, UYKFFDB = 'UYKFF_DIR', '~', '.uykffrc', '.uykffdb'
 WEB, PORT, ADDRESS = 'web', 'port', 'address'
 DATABASE, URL = 'database', 'url'
 LOG, LEVEL, DEBUG = 'log', 'level', 'debug'
+MODULES = 'modules'
 
 
 class Config:
@@ -44,6 +46,7 @@ class Config:
         self.web_port = int(parser.getint(WEB, PORT))
         self.web_address = parser.get(WEB, ADDRESS)
         self.db_url = parser.get(DATABASE, URL)
+        for (_, module) in parser.items(MODULES): import_module(module)
 
     def _write(self, dir, path):
         parser = ConfigParser()
@@ -54,6 +57,7 @@ class Config:
         parser.set(WEB, ADDRESS, 'localhost')
         parser.add_section(DATABASE)
         parser.set(DATABASE, URL, 'sqlite:///%s' % expanduser(join(dir, UYKFFDB)))
+        parser.add_section(MODULES)
         with open(path, 'w') as output: parser.write(output)
         print('''
 A new configuration file has been created at %s

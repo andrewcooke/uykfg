@@ -6,5 +6,6 @@ source env/bin/activate
 #easy_install pytache
 #easy_install sql_alchemy
 #easy_install stagger
-easy_install nose
+#easy_install nose
+#easy_install pystache
 
