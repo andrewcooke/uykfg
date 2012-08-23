@@ -10,43 +10,53 @@ missing it is created.  When read, all values must be present (defaults
 are given in the created file).
 '''
 
+from collections import namedtuple
 from configparser import ConfigParser
 from importlib import import_module
 from logging import basicConfig
 from io import StringIO
 from sys import stderr
 from os import environ
-from os.path import expanduser, join, exists
+from os.path import expanduser, join, exists, abspath
 
 
 UYKFF_DIR, HOME, UYKFFRC, UYKFFDB = 'UYKFF_DIR', '~', '.uykffrc', '.uykffdb'
 WEB, PORT, ADDRESS = 'web', 'port', 'address'
 DATABASE, URL = 'database', 'url'
+MP3, PATH = 'mp3', 'path'
 LOG, LEVEL, DEBUG = 'log', 'level', 'debug'
 MODULES = 'modules'
+
+
+class ConfigException(Exception):
+    pass
 
 
 class Config:
 
     def __init__(self, text=None):
         if text:
-            self._read(StringIO(text))
+            self._read(StringIO(text), text)
         else:
             dir = environ.get(UYKFF_DIR, HOME)
             path = expanduser(join(dir, UYKFFRC))
             if not exists(path):
                 self._write(dir, path)
             else:
-                with open(path) as input: self._read(input)
+                with open(path) as input: self._read(input, path)
 
-    def _read(self, input):
-        parser = ConfigParser()
-        parser.read_file(input)
-        basicConfig(level=parser.get(LOG, LEVEL).upper())
-        self.web_port = int(parser.getint(WEB, PORT))
-        self.web_address = parser.get(WEB, ADDRESS)
-        self.db_url = parser.get(DATABASE, URL)
-        for (_, module) in parser.items(MODULES): import_module(module)
+    def _read(self, input, name):
+        try:
+            parser = ConfigParser()
+            parser.read_file(input)
+            basicConfig(level=parser.get(LOG, LEVEL).upper())
+            self.web_port = int(parser.getint(WEB, PORT))
+            self.web_address = parser.get(WEB, ADDRESS)
+            self.db_url = parser.get(DATABASE, URL)
+            self.mp3_path = abspath(expanduser(parser.get(MP3, PATH)))
+            for (_, module) in parser.items(MODULES): import_module(module)
+        except Exception as e:
+            raise ConfigException('Error reading %s: %s' % (name, e))
 
     def _write(self, dir, path):
         parser = ConfigParser()
@@ -57,6 +67,8 @@ class Config:
         parser.set(WEB, ADDRESS, 'localhost')
         parser.add_section(DATABASE)
         parser.set(DATABASE, URL, 'sqlite:///%s' % expanduser(join(dir, UYKFFDB)))
+        parser.add_section(MP3)
+        parser.set(MP3, PATH, '~/music')
         parser.add_section(MODULES)
         with open(path, 'w') as output: parser.write(output)
         print('''
@@ -65,3 +77,6 @@ Please edit it and then restart
 If you move the file elsewhere please define the environment variable %s
 ''' % (path, UYKFF_DIR), file=stderr)
         exit(1)
+
+
+DummyConfig = namedtuple('DummyConfig', ['db_url', 'mp3_path'])
