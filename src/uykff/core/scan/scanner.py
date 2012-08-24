@@ -15,7 +15,6 @@ Finally we can discard unused artists.
 from datetime import datetime
 from functools import partial
 from logging import debug, warning
-from operator import attrgetter
 from os import walk
 from os.path import join, getmtime
 
