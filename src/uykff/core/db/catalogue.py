@@ -10,17 +10,14 @@ field that can be used by the appropriate metadata service.
 '''
 
 from sqlalchemy.orm import relationship
-from sqlalchemy.schema import Column, ForeignKey
+from sqlalchemy.schema import Column, ForeignKey, Index
 from sqlalchemy.sql.expression import func, select
-from sqlalchemy.types import Integer, UnicodeText, DateTime
+from sqlalchemy.types import Integer, UnicodeText, DateTime, Unicode
 
-from uykff.core.db.support import Base
-
-
-ALBUMS, TRACKS = 'albums', 'tracks'
+from uykff.core.db.support import TableBase
 
 
-class __Common(Base):
+class __Common(TableBase):
 
     __abstract__ = True
     id = Column(Integer, primary_key=True)
@@ -33,16 +30,18 @@ class __Common(Base):
 
 class Artist(__Common):
 
-    __tablename__ = 'artists'
-    disambiguation = Column(UnicodeText, default='')
+    __tablename__ = 'core_artists'
+    tagger_name = Column(Unicode, nullable=False)
+    tag_id = Column(Integer, nullable=False)
+    Index('artist_tag_idx', 'Artist.tagger_name', 'Artist.tag_id')
 
     def __str__(self):
-        return '%s (%s' % (self.name, self.disambiguation)
+        return '%s (%d:%d)' % (self.name, self.tagger_id, self.tag_id)
 
 
 class Album(__Common):
 
-    __tablename__ = ALBUMS
+    __tablename__ = 'core_albums'
     path = Column(UnicodeText)
 
     def __str__(self):
@@ -51,14 +50,14 @@ class Album(__Common):
 
 class Track(__Common):
 
-    __tablename__ = TRACKS
-    artist_id = Column(Integer, ForeignKey(Artist.id))
-    artist = relationship(Artist, backref=TRACKS)
-    album_id = Column(Integer, ForeignKey(Album.id))
-    album = relationship(Album, backref=TRACKS)
-    file = Column(UnicodeText)
-    number = Column(Integer)
-    modified = Column(DateTime)
+    __tablename__ = 'core_tracks'
+    artist_id = Column(Integer, ForeignKey(Artist.id), nullable=False)
+    artist = relationship(Artist, backref='tracks')
+    album_id = Column(Integer, ForeignKey(Album.id), nullable=False)
+    album = relationship(Album, backref='tracks')
+    file = Column(UnicodeText, nullable=False)
+    number = Column(Integer, nullable=False)
+    modified = Column(DateTime, nullable=False)
 
     def __str__(self):
         return '%s: %s (%s)' % (self.artist.name, self.name, self.album.name)

@@ -8,27 +8,25 @@ from sqlalchemy.orm.session import sessionmaker
 from uykff.core.db import startup
 from uykff.core.db.catalogue import Album, Artist, Track
 from uykff.core.scan.scanner import scan
-from uykff.core.support.configure import DummyConfig, Config
+from uykff.core.support.configure import Config
 from uykff.core.support.io import parent
 from uykff.core.support.sequences import lfilter
 
 
 class ScannerTest(TestCase):
 
-    def do_test(self, file):
-        Config() # set debug logs
-        config = DummyConfig(mp3_path=join(parent(__file__), file), db_url='sqlite:///')
-        engine = startup(config)
-        session = sessionmaker(engine)()
+    def do_directory(self, file):
+        config = Config(mp3_path=join(parent(__file__), file), db_url='sqlite:///')
+        session = startup(config)()
         scan(session, config)
         return session, config
 
     def test_empty(self):
-        session, _ = self.do_test('empty')
+        session, _ = self.do_directory('empty')
         assert len(session.query(Track).all()) == 0
 
     def test_not_empty(self):
-        session, _ = self.do_test('mp3s')
+        session, _ = self.do_directory('mp3s')
         albums = session.query(Album).all()
         assert len(albums) == 1, albums
         album = albums[0]
@@ -52,7 +50,7 @@ class ScannerTest(TestCase):
         assert len(artist.tracks) == 13, len(artist.tracks)
 
     def test_changed(self):
-        session, config = self.do_test('mp3s')
+        session, config = self.do_directory('mp3s')
         tracks = session.query(Track).all()
         assert len(tracks) == 13, len(tracks)
         track1a = session.query(Track).filter(Track.number == 1).one()

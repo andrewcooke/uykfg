@@ -2,5 +2,5 @@
 from sqlalchemy.ext.declarative import declarative_base
 
 
-Base = declarative_base()
+TableBase = declarative_base()
 
