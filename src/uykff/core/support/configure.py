@@ -1,8 +1,7 @@
 
 '''
-Most things should be configured via the web interface, but the basic
-parameters of database location, binding address and port need to be
-fixed before starting.
+Most things will eventually be configured via the web interface, but for now
+we use a file.
 
 We require a config file at UYKFF_DIR/.uykfrcf.  If UYKFF_DIR is undefined
 then is it taken to be the user's home directory.  If the .uykffrc file is

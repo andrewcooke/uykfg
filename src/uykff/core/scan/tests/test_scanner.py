@@ -3,12 +3,42 @@ from unittest import TestCase
 from os import utime
 from os.path import join
 
+from sqlalchemy.orm import relationship
+from sqlalchemy.orm.exc import NoResultFound
+from sqlalchemy.schema import Column, ForeignKey
+from sqlalchemy.types import Integer
+
 from uykff.core.db import startup
 from uykff.core.db.catalogue import Album, Artist, Track
+from uykff.core.db.support import TableBase
 from uykff.core.scan.scanner import scan
 from uykff.core.support.configure import Config
 from uykff.core.support.io import parent
 from uykff.core.support.sequences import lfilter
+from uykff.core.tag import Tagger
+
+
+class DummyTagger(Tagger):
+
+    TAGGER_NAME = 'dummy'
+    PRIORITY = 0
+
+    def find_artist(self, session, id3):
+        try:
+            return session.query(DummyArtist).one()
+        except NoResultFound:
+            artist = DummyArtist(id=1)
+            session.add(artist)
+            return artist
+
+
+class DummyArtist(TableBase):
+
+    __tablename__ = 'test_artists'
+    id = Column(Integer, primary_key=True)
+    artist_id = Column(Integer, ForeignKey(Artist.id), nullable=True)
+    artist = relationship(Artist)
+
 
 
 class ScannerTest(TestCase):

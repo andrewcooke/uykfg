@@ -24,13 +24,15 @@ from stagger.tags import read_tag
 from uykff.core.db.catalogue import Album, Track, Artist
 from uykff.core.support.io import getmdatetime
 from uykff.core.support.sequences import seq_and, lfilter, lmap
+from uykff.core.tag import Tagger
 
 
 def scan(session, config):
     debug('retrieving all known albums from database.')
+    tagger = Tagger.get_tagger()
     remaining = dict((album.path, album) for album in session.query(Album).all())
     for path, files in candidates(config.mp3_path):
-        scan_album(session, remaining, path, files)
+        scan_album(session, tagger, remaining, path, files)
     for path in remaining: delete_album(session, remaining[path])
     cull_artists(session)
     session.commit()
@@ -46,29 +48,29 @@ def candidates(root):
         elif not dirs:
             warning('ignoring empty directory at %s' % path)
 
-def scan_album(session, remaining, path, files):
+def scan_album(session, tagger, remaining, path, files):
     debug('scanning album at %s' % path)
     if path in remaining:
         album = remaining[path]; del remaining[path]
-        if unchanged_album(album, files): return
-        delete_album(session, album)
-    add_album(session, path, files)
+        if is_unchanged_album(album, files): return
+        delete_changed_album(session, album)
+    add_album(session, tagger, path, files)
 
-def unchanged_album(album, files):
+def is_unchanged_album(album, files):
     if len(files) != len(album.tracks): return False
     tracks = dict((track.file, track) for track in album.tracks)
-    return seq_and(map(partial(unchanged_track, album.path, tracks), files))
+    return seq_and(map(partial(is_unchanged_track, album.path, tracks), files))
 
-def unchanged_track(path, tracks, file):
+def is_unchanged_track(path, tracks, file):
     filepath = join(path, file)
     return file in tracks and tracks[file].modified == getmdatetime(filepath)
 
-def delete_album(session, album):
+def delete_changed_album(session, album):
     for track in album.tracks: session.delete(track)
     session.delete(album)
     debug('deleted %s' % album)
 
-def add_album(session, path, files):
+def add_album(session, tagger, path, files):
     data = list(file_data(path, files))
     titles = set(tag.album for (tag, file, modified) in data)
     if len(titles) == 1:
@@ -76,7 +78,7 @@ def add_album(session, path, files):
         # we could use transactions, but simpler to delete if no tracks
         album = Album(name=titles.pop(), path=path)
         session.add(album)
-        tracks = [add_track(session, album, tag, file, modified)
+        tracks = [add_track(session, tagger, album, tag, file, modified)
                   for (tag, file, modified) in data]
         if tracks:
             session.commit() # avoid too large a transaction
@@ -96,20 +98,28 @@ def file_data(path, files):
             modified = getmdatetime(filepath)
             yield tag, file, modified
 
-def add_track(session, album, tag, file, modified):
-    artist = add_artist(session, tag)
+def add_track(session, tagger, album, tag, file, modified):
+    artist = add_artist(session, tagger, album, tag)
     debug('creating track %s' % tag.track)
     return Track(artist=artist, album=album,
         number=tag.track, name=tag.title, file=file, modified=modified)
 
-def add_artist(session, tag):
+def add_artist(session, tagger, album, tag):
+    '''Try to handle multiple artists with the same name, without losing
+    too much efficiency - use the artist from the album, if it exists (eg
+    for non-first tracks on single artist albums), otherwise try to get
+    it from name and track via the tagger.'''
     try:
-        debug('searching for artist %s' % tag.artist)
-        return session.query(Artist).filter(Artist.name == tag.artist).one()
+        debug('searching for artist %s in %s' % (tag.artist, album.name))
+        return session.query(Artist).join('tracks', 'album')\
+        .filter(Artist.name == tag.artist, Album.id == album.id).distinct().one()
     except NoResultFound:
         debug('creating artist %s' % tag.artist)
-        artist = Artist(name=tag.artist, tagger_name='test', tag_id=0)
+        tagger_artist = tagger.find_artist(session, tag)
+        artist = Artist(name=tag.artist, tagger_name=tagger.TAGGER_NAME,
+            tag_id=tagger_artist.id)
         session.add(artist) # so we can find it before commit at end
+        tagger_artist.artist = artist
         return artist
 
 def cull_artists(session):
