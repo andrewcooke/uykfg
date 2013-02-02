@@ -1,7 +1,8 @@
 
+from time import time
+
 from sqlalchemy.schema import Column
-from sqlalchemy.sql.expression import func
-from sqlalchemy.types import Integer, DateTime, Binary, Text
+from sqlalchemy.types import Integer, Binary, Text
 
 from uykfg.core.db.support import TableBase
 
@@ -12,6 +13,7 @@ class NestCache(TableBase):
     key = Column(Text, primary_key=True)
     value = Column(Binary, nullable=False)
     size = Column(Integer, nullable=False)
-    added = Column(DateTime, nullable=False, default=func.now())
-    used = Column(DateTime, nullable=False, default=func.now())
+    # times stored to nearest second
+    added = Column(Integer, nullable=False, default=time)
+    used = Column(Integer, nullable=False, default=time)
 

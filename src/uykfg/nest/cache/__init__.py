@@ -1,6 +1,5 @@
 
 from hashlib import sha1
-from datetime import datetime
 from logging import debug
 from pickle import dumps, loads
 from threading import Thread
@@ -16,6 +15,7 @@ class Cache:
 
     def __init__(self, function, Session,
                  period=3600, max_lifetime=None, max_size=1e9, clean=True):
+        global __CACHE_CLEANER
         self._function = function
         self._session = Session()
         if clean and not __CACHE_CLEANER:
@@ -29,7 +29,7 @@ class Cache:
         if cached_value:
             debug('cache hit for %s' % repr((args, kargs)))
             value = self._decode_value(cached_value.value)
-            cached_value.used = datetime.today()
+            cached_value.used = time()
             self.hits += 1
         else:
             debug('cache miss for %s' % repr((args, kargs)))
@@ -60,7 +60,7 @@ __CACHE_CLEANER = None
 
 class CacheCleaner:
 
-    def __init__(self, Session, period=3600, max_lifetime=None, max_size=1e9,
+    def __init__(self, Session, period=60, max_lifetime=None, max_size=1e9,
                  standalone=True):
         self._session = Session()
         self._period = period
@@ -80,7 +80,7 @@ class CacheCleaner:
     def _clean_expired(self):
         count = 0
         if self._max_lifetime:
-            cutoff = datetime.fromtimestamp(time() - self._max_lifetime)
+            cutoff = time() - self._max_lifetime
             query = self._session.query(NestCache).filter(NestCache.added < cutoff)
             count = query.count()
             debug('deleting %d cache entries' % count)

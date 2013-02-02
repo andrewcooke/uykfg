@@ -12,7 +12,7 @@ field that can be used by the appropriate metadata service.
 from sqlalchemy.orm import relationship
 from sqlalchemy.schema import Column, ForeignKey, Index
 from sqlalchemy.sql.expression import func, select
-from sqlalchemy.types import Integer, UnicodeText, DateTime, Unicode
+from sqlalchemy.types import UnicodeText, Unicode, Integer
 
 from uykfg.core.db.support import TableBase
 
@@ -57,7 +57,9 @@ class Track(__Common):
     album = relationship(Album, backref='tracks')
     file = Column(UnicodeText, nullable=False)
     number = Column(Integer, nullable=False)
-    modified = Column(DateTime, nullable=False)
+    # use an integer for times so that we can test for exact matches
+    # but be careful in comparisons with floats!
+    modified = Column(Integer, nullable=False)
 
     def __str__(self):
         return '%s: %s (%s)' % (self.artist.name, self.name, self.album.name)

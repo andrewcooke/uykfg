@@ -22,7 +22,7 @@ from stagger.errors import NoTagError
 from stagger.tags import read_tag
 
 from uykfg.core.db.catalogue import Album, Track, Artist
-from uykfg.core.support.io import getmdatetime
+from uykfg.core.support.io import getimtime
 from uykfg.core.support.sequences import seq_and, lfilter, lmap
 from uykfg.core.tag import Tagger
 
@@ -63,7 +63,7 @@ def is_unchanged_album(album, files):
 
 def is_unchanged_track(path, tracks, file):
     filepath = join(path, file)
-    return file in tracks and tracks[file].modified == getmdatetime(filepath)
+    return file in tracks and tracks[file].modified == getimtime(filepath)
 
 def delete_changed_album(session, album):
     for track in album.tracks: session.delete(track)
@@ -95,7 +95,7 @@ def file_data(path, files):
         filepath = join(path, file)
         tag = get_tag(filepath)
         if tag:
-            modified = getmdatetime(filepath)
+            modified = getimtime(filepath)
             yield tag, file, modified
 
 def add_track(session, tagger, album, tag, file, modified):

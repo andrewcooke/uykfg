@@ -41,8 +41,9 @@ class CacheTest(TestCase):
         self._assert(cached_stringify(1, 2, three=4), "(1, 2) {'three': 4}")
         assert cached_stringify.hits == 3, cached_stringify.hits
         assert cached_stringify.misses == 2, cached_stringify.misses
-        sleep(1)
-        assert CacheCleaner(Session, max_lifetime=1, standalone=False)._clean_expired() == 1
+        sleep(2)
+        expired = CacheCleaner(Session, max_lifetime=1, standalone=False)._clean_expired()
+        assert expired == 1, expired
         self._assert(cached_stringify(1, 2, three=4), "(1, 2) {'three': 4}")
         assert cached_stringify.hits == 3, cached_stringify.hits
         assert cached_stringify.misses == 3, cached_stringify.misses
