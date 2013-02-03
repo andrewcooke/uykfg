@@ -3,10 +3,9 @@ from unittest import TestCase
 
 from sqlalchemy.orm.session import sessionmaker
 
-from uykfg.core.db import startup
-from uykfg.core.db.catalogue import Artist
-from uykfg.core.support.configure import Config
-from uykfg.nest import NestTagger
+from uykfg.music.db import startup
+from uykfg.music.db.catalogue import Artist
+from uykfg.support.configure import Config
 from uykfg.nest.db import NestArtist
 
 
@@ -21,8 +20,7 @@ class DbTest(TestCase):
         session.add(nest_artist)
         session.commit()
 
-        artist = Artist(name='bob',
-            tagger_name=NestTagger.TAGGER_NAME, tag_id=nest_artist.id)
+        artist = Artist(name='bob', tag_id=nest_artist.id)
         nest_artist.artist = artist
         session.add(artist)
         session.commit()

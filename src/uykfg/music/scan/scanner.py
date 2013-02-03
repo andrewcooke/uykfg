@@ -5,8 +5,8 @@ album (contains mp3s).  If it is, we check whether it already exists.
 If it does exist, we check that it has not changed.  If it has changed we
 delete it and continue as if new.  If it does not exist then we add it.
 
-Artists are accumulated as we progress.  We call out to additional services
-for artist identification and tags.
+Artists are accumulated as we progress.  We call out to the tagger for
+artist identification.
 
 Once the root has been scanned any album that was not found is deleted.
 Finally we can discard unused artists.
@@ -21,15 +21,13 @@ from sqlalchemy.orm.exc import NoResultFound
 from stagger.errors import NoTagError
 from stagger.tags import read_tag
 
-from uykfg.core.db.catalogue import Album, Track, Artist
-from uykfg.core.support.io import getimtime
-from uykfg.core.support.sequences import seq_and, lfilter, lmap
-from uykfg.core.tag import Tagger
+from uykfg.music.db.catalogue import Album, Track, Artist
+from uykfg.support.io import getimtime
+from uykfg.support.sequences import seq_and, lfilter
 
 
-def scan(session, config):
+def scan(session, tagger, config):
     debug('retrieving all known albums from database.')
-    tagger = Tagger.get_tagger()
     remaining = dict((album.path, album) for album in session.query(Album).all())
     for path, files in candidates(config.mp3_path):
         scan_album(session, tagger, remaining, path, files)
@@ -46,14 +44,14 @@ def candidates(root):
                 del dirs
             yield path, files
         elif not dirs:
-            warning('ignoring empty directory at %s' % path)
+            warning('empty directory at %s' % path)
 
 def scan_album(session, tagger, remaining, path, files):
     debug('scanning album at %s' % path)
     if path in remaining:
         album = remaining[path]; del remaining[path]
         if is_unchanged_album(album, files): return
-        delete_changed_album(session, album)
+        delete_album(session, album)
     add_album(session, tagger, path, files)
 
 def is_unchanged_album(album, files):
@@ -65,7 +63,7 @@ def is_unchanged_track(path, tracks, file):
     filepath = join(path, file)
     return file in tracks and tracks[file].modified == getimtime(filepath)
 
-def delete_changed_album(session, album):
+def delete_album(session, album):
     for track in album.tracks: session.delete(track)
     session.delete(album)
     debug('deleted %s' % album)
@@ -88,7 +86,7 @@ def add_album(session, tagger, path, files):
             session.delete(album)
             warning('no tracks for %s' % path)
     else:
-        warning('bad title(s) for %s (%s)' % (path, titles))
+        warning('ambiguous title(s) for %s (%s)' % (path, titles))
 
 def file_data(path, files):
     for file in files:
@@ -105,22 +103,20 @@ def add_track(session, tagger, album, tag, file, modified):
         number=tag.track, name=tag.title, file=file, modified=modified)
 
 def add_artist(session, tagger, album, tag):
-    '''Try to handle multiple artists with the same name, without losing
-    too much efficiency - use the artist from the album, if it exists (eg
-    for non-first tracks on single artist albums), otherwise try to get
-    it from name and track via the tagger.'''
+    '''The music db reflects only the name from the ID3 tag, so there may
+    be multiple artists with the same name.  The tagger is responsible for
+    disambiguation and may return either a new or an existing instance of
+    Artist, as appropriate.
+
+    But for efficiency we use the artist from the album, if it exists (ie
+    for non-first tracks on single artist albums).'''
     try:
         debug('searching for artist %s in %s' % (tag.artist, album.name))
         return session.query(Artist).join('tracks', 'album')\
-        .filter(Artist.name == tag.artist, Album.id == album.id).distinct().one()
+            .filter(Artist.name == tag.artist, Album.id == album.id).distinct().one()
     except NoResultFound:
-        debug('creating artist %s' % tag.artist)
-        tagger_artist = tagger.find_artist(session, tag)
-        artist = Artist(name=tag.artist, tagger_name=tagger.TAGGER_NAME,
-            tag_id=tagger_artist.id)
-        session.add(artist) # so we can find it before commit at end
-        tagger_artist.artist = artist
-        return artist
+        debug('delegating artist %s to tagger' % tag.artist)
+        return tagger.find_artist(session, tag)
 
 def cull_artists(session):
     for artist in session.query(Artist).filter(Artist.tracks == None).all():

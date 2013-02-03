@@ -3,8 +3,8 @@ from sqlalchemy.orm import relationship
 from sqlalchemy.schema import Column, Table, ForeignKey
 from sqlalchemy.types import Integer, Unicode
 
-from uykfg.core.db.catalogue import Artist
-from uykfg.core.db.support import TableBase
+from uykfg.music.db.catalogue import Artist
+from uykfg.music.db.support import TableBase
 
 
 tags_and_artists = Table('nest_tags_and_artists', TableBase.metadata,

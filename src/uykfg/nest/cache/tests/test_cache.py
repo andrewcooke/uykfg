@@ -2,8 +2,8 @@
 from time import sleep
 from unittest import TestCase
 
-from uykfg.core.db import startup
-from uykfg.core.support.configure import Config
+from uykfg.music.db import startup
+from uykfg.music.support.configure import Config
 from uykfg.nest.cache import Cache, CacheCleaner
 
 

@@ -19,7 +19,6 @@ UYKFG_DIR, HOME, UYKFGRC, UYKFGDB = 'UYKFFG_DIR', '~', '.uykfgrc', '.uykfgdb'
 DATABASE, URL = 'database', 'url'
 MP3, PATH = 'mp3', 'path'
 LOG, LEVEL, DEBUG = 'log', 'level', 'debug'
-MODULES = 'modules'
 
 
 class ConfigException(Exception):
@@ -77,7 +76,6 @@ class Config:
         parser.set(DATABASE, URL, self.db_url)
         parser.add_section(MP3)
         parser.set(MP3, PATH, self.mp3_path)
-        parser.add_section(MODULES)
         with open(path, 'w') as output: parser.write(output)
         print('''
 A new configuration file has been created at %s

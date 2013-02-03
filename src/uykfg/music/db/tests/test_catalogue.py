@@ -2,9 +2,9 @@
 from time import time
 from unittest import TestCase
 
-from uykfg.core.db import startup
-from uykfg.core.db.catalogue import Track, Artist, Album
-from uykfg.core.support.configure import Config
+from uykfg.music.db import startup
+from uykfg.music.db.catalogue import Track, Artist, Album
+from uykfg.support.configure import Config
 
 
 class TestCatalogue(TestCase):

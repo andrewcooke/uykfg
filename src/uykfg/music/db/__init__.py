@@ -4,7 +4,7 @@ from logging import debug
 from sqlalchemy.engine import create_engine
 from sqlalchemy.orm.session import sessionmaker
 
-from uykfg.core.db.catalogue import TableBase
+from uykfg.music.db.catalogue import TableBase
 
 
 def startup(config):

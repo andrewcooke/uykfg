@@ -1,4 +1,5 @@
 
+from logging import debug
 from unittest import TestCase
 from os import utime
 from os.path import join
@@ -8,28 +9,36 @@ from sqlalchemy.orm.exc import NoResultFound
 from sqlalchemy.schema import Column, ForeignKey
 from sqlalchemy.types import Integer
 
-from uykfg.core.db import startup
-from uykfg.core.db.catalogue import Album, Artist, Track
-from uykfg.core.db.support import TableBase
-from uykfg.core.scan.scanner import scan
-from uykfg.core.support.configure import Config
-from uykfg.core.support.io import parent
-from uykfg.core.support.sequences import lfilter
-from uykfg.core.tag import Tagger
+from uykfg.music.db import startup
+from uykfg.music.db.catalogue import Album, Artist, Track
+from uykfg.music.db.support import TableBase
+from uykfg.music.scan.scanner import scan
+from uykfg.support.configure import Config
+from uykfg.support.io import parent
+from uykfg.support.sequences import lfilter
 
 
-class DummyTagger(Tagger):
-
-    TAGGER_NAME = 'dummy'
-    PRIORITY = 0
+class DummyTagger:
 
     def find_artist(self, session, id3):
         try:
-            return session.query(DummyArtist).one()
+            dummy = session.query(DummyArtist).join('artist').\
+                filter(Artist.name==id3.artist).one()
         except NoResultFound:
-            artist = DummyArtist(id=1)
-            session.add(artist)
-            return artist
+            debug('creating dummy artist for %s' % id3.artist)
+            dummy = DummyArtist()
+            session.add(dummy)
+        if dummy.artist:
+            artist = dummy.artist
+        else:
+            try:
+                artist = session.query(Artist).filter(Artist.name==id3.artist).one()
+            except NoResultFound:
+                debug('creating artist %s' % id3.artist)
+                artist = Artist(name=id3.artist)
+                session.add(artist)
+            dummy.artist_id = artist.id
+        return artist
 
 
 class DummyArtist(TableBase):
@@ -43,19 +52,19 @@ class DummyArtist(TableBase):
 
 class ScannerTest(TestCase):
 
-    def do_directory(self, file):
+    def scan_directory(self, file):
         config = Config(mp3_path=join(parent(__file__), file), db_url='sqlite:///')
 #        config = Config(mp3_path=join(parent(__file__), file), db_url='sqlite:////tmp/test.sql')
         session = startup(config)()
-        scan(session, config)
+        scan(session, DummyTagger(), config)
         return session, config
 
     def test_empty(self):
-        session, _ = self.do_directory('empty')
+        session, _ = self.scan_directory('empty')
         assert len(session.query(Track).all()) == 0
 
     def test_not_empty(self):
-        session, _ = self.do_directory('mp3s')
+        session, _ = self.scan_directory('mp3s')
         albums = session.query(Album).join(Album.tracks).join(Track.artist).filter(Artist.name == 'Artist 1').all()
         assert len(albums) == 1, albums
         album = albums[0]
@@ -79,14 +88,14 @@ class ScannerTest(TestCase):
         assert len(artist.tracks) == 2, len(artist.tracks)
 
     def test_changed(self):
-        session, config = self.do_directory('mp3s')
+        session, config = self.scan_directory('mp3s')
         tracks = session.query(Track).all()
-
         assert len(tracks) == 7, len(tracks)
         track1a = session.query(Track).join(Track.artist).filter(Track.number == 1, Artist.name == 'Artist 1').one()
         track2a = session.query(Track).join(Track.artist).filter(Track.number == 2, Artist.name == 'Artist 1').one()
+
         utime(join(track1a.album.path, track1a.file), None)
-        scan(session, config)
+        scan(session, DummyTagger(), config)
         tracks = session.query(Track).all()
         assert len(tracks) == 7, len(tracks)
         track1b = session.query(Track).join(Track.artist).filter(Track.number == 1, Artist.name == 'Artist 1').one()

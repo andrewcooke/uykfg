@@ -4,7 +4,7 @@ from time import time
 from sqlalchemy.schema import Column
 from sqlalchemy.types import Integer, Binary, Text
 
-from uykfg.core.db.support import TableBase
+from uykfg.music.db.support import TableBase
 
 
 class NestCache(TableBase):

@@ -5,8 +5,7 @@ tracks are files within that directory.  Tracks have a single artist
 (which may be a list of names etc).  We don't try to unify individuals
 (artists are "groups", not "performers").
 
-Different artists can have the same name,  We include a disambiguation
-field that can be used by the appropriate metadata service.
+Different artists can have the same name,
 '''
 
 from sqlalchemy.orm import relationship
@@ -14,7 +13,7 @@ from sqlalchemy.schema import Column, ForeignKey, Index
 from sqlalchemy.sql.expression import func, select
 from sqlalchemy.types import UnicodeText, Unicode, Integer
 
-from uykfg.core.db.support import TableBase
+from uykfg.music.db.support import TableBase
 
 
 class __Common(TableBase):
@@ -27,21 +26,18 @@ class __Common(TableBase):
     def count(cls, session):
         return session.connection().execute(select([func.count(cls.id)])).scalar()
 
+    def __str__(self):
+        return '%s (%d)' % (self.name, self.id)
+
 
 class Artist(__Common):
 
-    __tablename__ = 'core_artists'
-    tagger_name = Column(Unicode, nullable=False)
-    tag_id = Column(Integer, nullable=False)
-    Index('artist_tag_idx', 'Artist.tagger_name', 'Artist.tag_id')
-
-    def __str__(self):
-        return '%s (%d:%d)' % (self.name, self.tagger_id, self.tag_id)
+    __tablename__ = 'music_artists'
 
 
 class Album(__Common):
 
-    __tablename__ = 'core_albums'
+    __tablename__ = 'music_albums'
     path = Column(UnicodeText)
 
     def __str__(self):
@@ -50,7 +46,7 @@ class Album(__Common):
 
 class Track(__Common):
 
-    __tablename__ = 'core_tracks'
+    __tablename__ = 'music_tracks'
     artist_id = Column(Integer, ForeignKey(Artist.id), nullable=False)
     artist = relationship(Artist, backref='tracks')
     album_id = Column(Integer, ForeignKey(Album.id), nullable=False)

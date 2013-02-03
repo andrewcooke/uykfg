@@ -1,6 +1,6 @@
 
-from uykfg.core.support.configure import Config
-from uykfg.core.db import startup as db_startup
+from uykfg.support.configure import Config
+from uykfg.music.db import startup as db_startup
 
 
 def main(config):
