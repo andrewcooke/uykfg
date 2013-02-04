@@ -11,14 +11,14 @@ from sqlalchemy.types import Integer
 
 from uykfg.music.db import startup
 from uykfg.music.db.catalogue import Album, Artist, Track
-from uykfg.music.db.support import TableBase
 from uykfg.music.scan.scanner import scan
+from uykfg.support.db import TableBase
 from uykfg.support.configure import Config
 from uykfg.support.io import parent
 from uykfg.support.sequences import lfilter
 
 
-class DummyTagger:
+class DummyFinder:
 
     def find_artist(self, session, id3):
         try:
@@ -56,7 +56,7 @@ class ScannerTest(TestCase):
         config = Config(mp3_path=join(parent(__file__), file), db_url='sqlite:///')
 #        config = Config(mp3_path=join(parent(__file__), file), db_url='sqlite:////tmp/test.sql')
         session = startup(config)()
-        scan(session, DummyTagger(), config)
+        scan(session, DummyFinder(), config)
         return session, config
 
     def test_empty(self):
@@ -95,7 +95,7 @@ class ScannerTest(TestCase):
         track2a = session.query(Track).join(Track.artist).filter(Track.number == 2, Artist.name == 'Artist 1').one()
 
         utime(join(track1a.album.path, track1a.file), None)
-        scan(session, DummyTagger(), config)
+        scan(session, DummyFinder(), config)
         tracks = session.query(Track).all()
         assert len(tracks) == 7, len(tracks)
         track1b = session.query(Track).join(Track.artist).filter(Track.number == 1, Artist.name == 'Artist 1').one()

@@ -4,7 +4,7 @@ from sqlalchemy.schema import Column, Table, ForeignKey
 from sqlalchemy.types import Integer, Unicode
 
 from uykfg.music.db.catalogue import Artist
-from uykfg.music.db.support import TableBase
+from uykfg.support.db import TableBase
 
 
 tags_and_artists = Table('nest_tags_and_artists', TableBase.metadata,
@@ -19,7 +19,7 @@ class NestArtist(TableBase):
     id = Column(Integer, primary_key=True)
     artist_id = Column(Integer, ForeignKey(Artist.id), nullable=True)
     artist = relationship(Artist)
-    tags = relationship("NestTag", secondary=tags_and_artists, backref="artists")
+    tags = relationship("tags", secondary=tags_and_artists, backref="artists")
 
 
 class NestTag(TableBase):

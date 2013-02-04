@@ -102,9 +102,9 @@ def add_track(session, tagger, album, tag, file, modified):
     return Track(artist=artist, album=album,
         number=tag.track, name=tag.title, file=file, modified=modified)
 
-def add_artist(session, tagger, album, tag):
+def add_artist(session, finder, album, tag):
     '''The music db reflects only the name from the ID3 tag, so there may
-    be multiple artists with the same name.  The tagger is responsible for
+    be multiple artists with the same name.  The finder is responsible for
     disambiguation and may return either a new or an existing instance of
     Artist, as appropriate.
 
@@ -115,8 +115,8 @@ def add_artist(session, tagger, album, tag):
         return session.query(Artist).join('tracks', 'album')\
             .filter(Artist.name == tag.artist, Album.id == album.id).distinct().one()
     except NoResultFound:
-        debug('delegating artist %s to tagger' % tag.artist)
-        return tagger.find_artist(session, tag)
+        debug('delegating artist %s to finder' % tag.artist)
+        return finder.find_artist(session, tag)
 
 def cull_artists(session):
     for artist in session.query(Artist).filter(Artist.tracks == None).all():

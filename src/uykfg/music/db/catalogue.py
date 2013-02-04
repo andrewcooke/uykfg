@@ -13,7 +13,7 @@ from sqlalchemy.schema import Column, ForeignKey, Index
 from sqlalchemy.sql.expression import func, select
 from sqlalchemy.types import UnicodeText, Unicode, Integer
 
-from uykfg.music.db.support import TableBase
+from uykfg.support.db import TableBase
 
 
 class __Common(TableBase):

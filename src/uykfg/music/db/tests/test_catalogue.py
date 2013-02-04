@@ -14,7 +14,7 @@ class TestCatalogue(TestCase):
         Session = startup(Config(db_url='sqlite:///'))
 
         session = Session()
-        artist = Artist(name='bob', tagger_name='tagger', tag_id=0)
+        artist = Artist(name='bob')
         session.add(artist)
         track1 = Track(name='track1', artist=artist, number='1', file='file1', modified=time())
         session.add(track1)
