@@ -12,8 +12,8 @@ class FinderTest(TestCase):
 
     def finder(self):
         config = Config.default()
-        Session = startup(config)
-        return Session(), Finder(config, Session)
+        session = startup(config)
+        return session, Finder(config, session)
 
     def id3(self, artist, title):
         class Object: pass

@@ -13,9 +13,8 @@ class DbTest(TestCase):
 
     def test_db(self):
 
-        Session = startup(Config(db_url='sqlite:///', modules=['uykfg.nest']))
+        session = startup(Config(db_url='sqlite:///', modules=['uykfg.nest']))
 
-        session = Session()
         nest_artist = NestArtist()
         session.add(nest_artist)
         session.commit()

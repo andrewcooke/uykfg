@@ -11,9 +11,8 @@ class TestCatalogue(TestCase):
 
     def test_catalogue(self):
 
-        Session = startup(Config(db_url='sqlite:///'))
+        session = startup(Config(db_url='sqlite:///'))
 
-        session = Session()
         artist = Artist(name='bob')
         session.add(artist)
         track1 = Track(name='track1', artist=artist, number='1', file='file1', modified=time())
@@ -24,7 +23,6 @@ class TestCatalogue(TestCase):
         session.add(album)
         session.commit()
 
-        session = Session()
         artists = session.query(Artist).all()
         assert len(artists) == 1, artists
         assert len(artists[0].tracks) == 2, artists[0].tracks

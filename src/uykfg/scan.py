@@ -7,9 +7,9 @@ from uykfg.support.configure import Config
 
 def scan():
     config = Config.default()
-    Session = startup(config)
-    finder = Finder(config, Session)
-    scan_all(Session(), finder, config)
+    session = startup(config)
+    finder = Finder(config, session)
+    scan_all(session, finder, config)
 
 
 if __name__ == '__main__':

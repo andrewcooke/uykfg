@@ -23,8 +23,8 @@ class FinderError(Exception): pass
 
 class Finder:
 
-    def __init__(self, config, Session):
-        self._api = Cache(RateLimitingApi(config.api_key), Session)
+    def __init__(self, config, session):
+        self._api = Cache(RateLimitingApi(config.api_key), session)
 
     def find_artist(self, session, id3):
         '''
@@ -73,10 +73,10 @@ class Finder:
 
 if __name__ == '__main__':
     config = Config.default()
-    Session = startup(config)
-    finder = Finder(config, Session)
+    session = startup(config)
+    finder = Finder(config, session)
     class Object: pass
     id3 = Object()
     id3.artist = 'Miles'
     id3.title = 'Blue'
-    print(finder.find_artist(Session(), id3))
+    print(finder.find_artist(session, id3))

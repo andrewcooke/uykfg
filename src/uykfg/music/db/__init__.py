@@ -14,7 +14,7 @@ def startup(config):
     metadata.bind = engine
     debug('creating tables (if missing)')
     metadata.create_all()
-    return sessionmaker(bind=engine)
+    return sessionmaker(bind=engine)()
 
 
 def get_or_create(session, model, **kwargs):

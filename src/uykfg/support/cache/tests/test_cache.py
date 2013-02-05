@@ -18,8 +18,8 @@ class CacheTest(TestCase):
 
     def test_cache(self):
         config = Config(db_url='sqlite://')
-        Session = startup(config)
-        cached_stringify = Cache(stringify, Session)
+        session = startup(config)
+        cached_stringify = Cache(stringify, session)
         self._assert(stringify(1, 2, three=4), "(1, 2) {'three': 4}")
         self._assert(cached_stringify(1, 2, three=4), "(1, 2) {'three': 4}")
         assert cached_stringify.hits == 0, cached_stringify.hits

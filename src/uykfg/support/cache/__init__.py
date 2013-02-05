@@ -18,10 +18,10 @@ HOUR = 60 * 60
 
 class Cache:
 
-    def __init__(self, function, Session, name=None,
+    def __init__(self, function, session, name=None,
                  value_lifetime=None, exception_lifetime=None, max_size=None):
         self._function = function
-        self._session = Session()
+        self._session = session
         if not name:
             try: name = function.__name__
             except AttributeError: name = function.__class__.__name__

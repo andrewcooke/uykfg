@@ -55,7 +55,7 @@ class ScannerTest(TestCase):
     def scan_directory(self, file):
         config = Config(mp3_path=join(parent(__file__), file), db_url='sqlite:///')
 #        config = Config(mp3_path=join(parent(__file__), file), db_url='sqlite:////tmp/test.sql')
-        session = startup(config)()
+        session = startup(config)
         scan(session, DummyFinder(), config)
         return session, config
 
