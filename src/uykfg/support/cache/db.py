@@ -3,7 +3,7 @@ from time import time
 from sqlalchemy.orm import relationship
 
 from sqlalchemy.schema import Column, ForeignKey
-from sqlalchemy.types import Integer, Binary, Text
+from sqlalchemy.types import Integer, Binary, Text, Boolean
 
 from uykfg.support.db import TableBase
 
@@ -16,7 +16,8 @@ class CacheOwner(TableBase):
     name = Column(Text, unique=True)
     total_size = Column(Integer, nullable=False, default=0)
     max_size = Column(Integer, nullable=False)
-    max_lifetime = Column(Integer, nullable=False)
+    value_lifetime = Column(Integer, nullable=False)
+    exception_lifetime = Column(Integer, nullable=False)
 
 
 class CacheData(TableBase):
@@ -26,6 +27,7 @@ class CacheData(TableBase):
     owner = relationship(CacheOwner, backref='data')
     key = Column(Text, primary_key=True, nullable=False)
     value = Column(Binary, nullable=False)
+    exception = Column(Boolean, nullable=False)
     size = Column(Integer, nullable=False)
     # times stored to nearest second
     expires = Column(Integer, nullable=False)

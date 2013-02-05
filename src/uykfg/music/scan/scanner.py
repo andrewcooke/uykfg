@@ -5,7 +5,7 @@ album (contains mp3s).  If it is, we check whether it already exists.
 If it does exist, we check that it has not changed.  If it has changed we
 delete it and continue as if new.  If it does not exist then we add it.
 
-Artists are accumulated as we progress.  We call out to the tagger for
+Artists are accumulated as we progress.  We call out to the finder for
 artist identification.
 
 Once the root has been scanned any album that was not found is deleted.
@@ -22,20 +22,24 @@ from stagger.errors import NoTagError
 from stagger.tags import read_tag
 
 from uykfg.music.db.catalogue import Album, Track, Artist
+from uykfg.nest.finder import FinderError
 from uykfg.support.io import getimtime
 from uykfg.support.sequences import seq_and, lfilter
 
 
-def scan(session, tagger, config):
+def scan_all(session, finder, config):
     debug('retrieving all known albums from database.')
     remaining = dict((album.path, album) for album in session.query(Album).all())
     for path, files in candidates(config.mp3_path):
-        scan_album(session, tagger, remaining, path, files)
+        scan_album(session, finder, remaining, path, files)
+    cull_albums(session, remaining)
     for path in remaining: delete_album(session, remaining[path])
     cull_artists(session)
     session.commit()
+    debug('done!')
 
 def candidates(root):
+    debug('scanning %s' % root)
     for path, dirs, files in walk(root):
         files = lfilter(lambda file: file.endswith('.mp3'), files)
         if files:
@@ -46,13 +50,13 @@ def candidates(root):
         elif not dirs:
             warning('empty directory at %s' % path)
 
-def scan_album(session, tagger, remaining, path, files):
+def scan_album(session, finder, remaining, path, files):
     debug('scanning album at %s' % path)
     if path in remaining:
         album = remaining[path]; del remaining[path]
         if is_unchanged_album(album, files): return
         delete_album(session, album)
-    add_album(session, tagger, path, files)
+    add_album(session, finder, path, files)
 
 def is_unchanged_album(album, files):
     if len(files) != len(album.tracks): return False
@@ -68,7 +72,7 @@ def delete_album(session, album):
     session.delete(album)
     debug('deleted %s' % album)
 
-def add_album(session, tagger, path, files):
+def add_album(session, finder, path, files):
     data = list(file_data(path, files))
     titles = set(tag.album for (tag, file, modified) in data)
     if len(titles) == 1:
@@ -76,8 +80,7 @@ def add_album(session, tagger, path, files):
         # we could use transactions, but simpler to delete if no tracks
         album = Album(name=titles.pop(), path=path)
         session.add(album)
-        tracks = [add_track(session, tagger, album, tag, file, modified)
-                  for (tag, file, modified) in data]
+        tracks = list(add_tracks(session, finder, album, data))
         if tracks:
             session.commit() # avoid too large a transaction
             debug('added %s' % album)
@@ -96,8 +99,15 @@ def file_data(path, files):
             modified = getimtime(filepath)
             yield tag, file, modified
 
-def add_track(session, tagger, album, tag, file, modified):
-    artist = add_artist(session, tagger, album, tag)
+def add_tracks(session, finder, album, data):
+    for (tag, file, modified) in data:
+        try:
+            yield add_track(session, finder, album, tag, file, modified)
+        except FinderError as e:
+            warning(e)
+
+def add_track(session, finder, album, tag, file, modified):
+    artist = add_artist(session, finder, album, tag)
     debug('creating track %s' % tag.track)
     return Track(artist=artist, album=album,
         number=tag.track, name=tag.title, file=file, modified=modified)
@@ -119,8 +129,13 @@ def add_artist(session, finder, album, tag):
         return finder.find_artist(session, tag)
 
 def cull_artists(session):
+    debug('removing unused artists')
     for artist in session.query(Artist).filter(Artist.tracks == None).all():
         session.delete(artist)
+
+def cull_albums(session, remaining):
+    debug('removing unused albums')
+    for path in remaining: delete_album(session, remaining[path])
 
 def get_tag(path):
     try:

@@ -13,11 +13,13 @@ from uykfg.support.cache.db import CacheOwner, CacheData
 
 
 MONTH = 3 * 24 * 60 * 60
+HOUR = 60 * 60
 
 
 class Cache:
 
-    def __init__(self, function, Session, name=None, max_lifetime=None, max_size=None):
+    def __init__(self, function, Session, name=None,
+                 value_lifetime=None, exception_lifetime=None, max_size=None):
         self._function = function
         self._session = Session()
         if not name:
@@ -25,11 +27,13 @@ class Cache:
             except AttributeError: name = function.__class__.__name__
         try:
             owner = self._session.query(CacheOwner).filter(CacheOwner.name == name).one()
-            if max_lifetime: owner.max_lifetime = max_lifetime
+            if value_lifetime: owner.value_lifetime = value_lifetime
+            if exception_lifetime: owner.exception_lifetime = exception_lifetime
             if max_size: owner.max_size = max_size
         except NoResultFound:
             owner = CacheOwner(name=name,
-                max_lifetime=max_lifetime if max_lifetime else MONTH,
+                value_lifetime=value_lifetime if value_lifetime else MONTH,
+                exception_lifetime=exception_lifetime if exception_lifetime else HOUR,
                 max_size=max_size if max_size else 1e9)
             self._session.add(owner)
         self._owner = owner
@@ -44,21 +48,31 @@ class Cache:
         if cached_value:
             debug('cache hit for %s' % repr((args, kargs)))
             value = self._decode_value(cached_value.value)
+            exception = cached_value.exception
             cached_value.used = time()
             self.hits += 1
         else:
             debug('cache miss for %s' % repr((args, kargs)))
-            value = self._function(*args, **kargs)
+            exception = False
+            try:
+                value = self._function(*args, **kargs)
+            except Exception as e:
+                value = e
+                exception = True
+            debug('caching: %r' % value)
             encoded_value = self._encode_value(value)
             size = len(key) + len(encoded_value)
+            if exception: expires = int(time() + self._owner.exception_lifetime)
+            else: expires = int(time() + self._owner.value_lifetime * (0.5 + random()))
             self._session.add(CacheData(owner=self._owner, key=key,
-                value=encoded_value, size=size,
-                expires=int(time() + self._owner.max_lifetime * (0.5 + random()))))
+                value=encoded_value, size=size, exception=exception,
+                expires=expires))
             self.misses += 1
             self._owner.total_size += size
             self._reduce()
         self._session.commit()
-        return value
+        if exception: raise value
+        else: return value
 
     def _encode_key(self, *args, **kargs):
         hash = sha1()

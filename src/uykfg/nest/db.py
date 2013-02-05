@@ -1,7 +1,7 @@
 
 from sqlalchemy.orm import relationship
-from sqlalchemy.schema import Column, Table, ForeignKey
-from sqlalchemy.types import Integer, Unicode, UnicodeText
+from sqlalchemy.schema import Column, ForeignKey
+from sqlalchemy.types import Integer, UnicodeText
 
 from uykfg.music.db.catalogue import Artist
 from uykfg.support.db import TableBase
