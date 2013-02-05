@@ -19,8 +19,8 @@ from uykfg.support.db import TableBase
 class __Common(TableBase):
 
     __abstract__ = True
-    id = Column(Integer, primary_key=True)
-    name = Column(UnicodeText)
+    id = Column(Integer, primary_key=True, nullable=False)
+    name = Column(UnicodeText, nullable=False)
 
     @classmethod
     def count(cls, session):
@@ -38,7 +38,7 @@ class Artist(__Common):
 class Album(__Common):
 
     __tablename__ = 'music_albums'
-    path = Column(UnicodeText)
+    path = Column(UnicodeText, nullable=False)
 
     def __str__(self):
         return '%s (%s)' % (self.name, self.path)

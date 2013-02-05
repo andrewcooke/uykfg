@@ -20,7 +20,9 @@ class Cache:
     def __init__(self, function, Session, name=None, max_lifetime=None, max_size=None):
         self._function = function
         self._session = Session()
-        if not name: name = function.__name__
+        if not name:
+            try: name = function.__name__
+            except AttributeError: name = function.__class__.__name__
         try:
             owner = self._session.query(CacheOwner).filter(CacheOwner.name == name).one()
             if max_lifetime: owner.max_lifetime = max_lifetime

@@ -146,13 +146,13 @@ class RateLimitingApi:
             debug('too little information to estimate rates')
             self._no_call_before = now + (self._period / self._rate_limit)
 
-    def __call__(self, _api, _method, **kargs):
+    def __call__(self, api, method, **kargs):
         '''
         Make an API call.  The URL is generated according to the parameters
         and `__init__()` values.  Calls may be delayed to limit request rates.
         The response is returned as text.
         '''
-        url = self._build_url(_api, _method, **kargs)
+        url = self._build_url(api, method, **kargs)
         self._limit_rate()
         try:
             return self._do_request(url)

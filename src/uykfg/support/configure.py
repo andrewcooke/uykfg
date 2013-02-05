@@ -19,6 +19,7 @@ UYKFG_DIR, HOME, UYKFGRC, UYKFGDB = 'UYKFFG_DIR', '~', '.uykfgrc', '.uykfgdb'
 DATABASE, URL = 'database', 'url'
 MP3, PATH = 'mp3', 'path'
 LOG, LEVEL, DEBUG = 'log', 'level', 'debug'
+ECHONEST, API_KEY = 'echonest', 'api_key'
 
 
 class ConfigException(Exception):
@@ -29,14 +30,14 @@ class Config:
 
     def __init__(self, log_level='debug', web_port=9001, web_address='localhost',
                  db_url='sqlite:///%s' % expanduser(join(environ.get(UYKFG_DIR, HOME), UYKFGDB)),
-                 mp3_path=expanduser('~/music'), modules=None):
+                 mp3_path=expanduser('~/music'), api_key=None):
         self.log_level = log_level
         self.web_port = web_port
         self.web_address = web_address
         self.db_url = db_url
         self.mp3_path = mp3_path
+        self.api_key = api_key
         basicConfig(level=log_level.upper())
-        for module in modules or []: import_module(module)
 
     @staticmethod
     def from_text(text):
@@ -55,7 +56,7 @@ class Config:
             return Config(log_level=parser.get(LOG, LEVEL),
                 db_url = parser.get(DATABASE, URL),
                 mp3_path = abspath(expanduser(parser.get(MP3, PATH))),
-                modules = parser.items(MODULES))
+                api_key = parser.get(ECHONEST, API_KEY))
         except Exception as e:
             raise ConfigException('Error reading %s: %s' % (name, e))
 
@@ -76,6 +77,8 @@ class Config:
         parser.set(DATABASE, URL, self.db_url)
         parser.add_section(MP3)
         parser.set(MP3, PATH, self.mp3_path)
+        parser.add_section(ECHONEST)
+        parser.set(ECHONEST, API_KEY, '')
         with open(path, 'w') as output: parser.write(output)
         print('''
 A new configuration file has been created at %s
