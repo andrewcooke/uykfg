@@ -70,10 +70,12 @@ class Finder:
             debug(artists)
         if artists:
             (id, name), score = artists.most_common(1)[0]
-            debug('voted for %s:%s (%d)' % (name, id, score))
-            return self._artist(session, artist, id, name)
-        else:
-            raise FinderError(', '.join(titles))
+            if score > max(2, len(titles) / 2):
+                debug('voted for %s:%s (%d)' % (name, id, score))
+                return self._artist(session, artist, id, name)
+            else:
+                debug('inconclusive vote (%s: %d)' % (name, score))
+        raise FinderError(', '.join(titles))
 
 
 if __name__ == '__main__':
