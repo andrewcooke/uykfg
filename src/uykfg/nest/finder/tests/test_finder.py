@@ -18,7 +18,7 @@ class FinderTest(TestCase):
         assert artist.name == music_name, artist.name
         nest_artist = session.query(NestArtist).filter(NestArtist.name == nest_name).one()
         assert nest_artist.name == nest_name, nest_artist.name
-        assert nest_artist.artist == artist
+        assert nest_artist.artists[0] == artist
 
     def test_track(self):
         session, finder = self.finder()

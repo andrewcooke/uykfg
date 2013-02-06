@@ -41,22 +41,21 @@ class Finder:
             yield song['artist_id'], song['artist_name']
 
     def _artist(self, session, id3_name, nest_id, nest_name):
-        commit = False
         try:
             nest_artist = session.query(NestArtist).filter(NestArtist.id == nest_id).one()
         except NoResultFound:
             debug('creating nest artist %s:%s' % (nest_name, nest_id))
             nest_artist = NestArtist(id=nest_id, name=nest_name)
             session.add(nest_artist)
-            commit = True
-        if not nest_artist.artist:
-            debug('creating artist %s' % id3_name)
-            artist = Artist(name = id3_name)
-            session.add(artist)
-            nest_artist.artist = artist
-            commit = True
-        if commit: session.commit()
-        return nest_artist.artist
+            session.commit()
+        for artist in nest_artist.artists:
+            if artist.name == id3_name: return artist
+        debug('creating artist %s' % id3_name)
+        artist = Artist(name = id3_name)
+        session.add(artist)
+        nest_artist.artists.append(artist)
+        session.commit()
+        return artist
 
     def find_tracks_artist(self, session, artist, titles):
         artists = Counter()
