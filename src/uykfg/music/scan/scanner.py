@@ -109,16 +109,16 @@ def add_tracks(session, finder, album, data):
     for (tag, file, modified) in retry0:
         try: yield add_album_track(session, album, tag, file, modified)
         except NoResultFound: retry1.append((tag, file, modified))
-    # if we failed for the entire album, and have a single artist, try combining tracks
-    if len(retry1) == len(data) and len(data) > 1 and \
-            len(set(d[0].artist for d in data)) == 1:
-        for track in add_album_tracks(session, finder, album, retry1):
-            yield track
-            retry1 = [] # we found the artist
-    # finally, use artist name alone
+    # use artist name alone
     for (tag, file, modified) in retry1:
         try: yield add_artist(session, finder, album, tag, file, modified)
         except FinderError: retry2.append((tag, file, modified))
+    # if we failed for the entire album, and have a single artist, try combining tracks
+    if len(retry2) == len(data) and len(data) > 1 and \
+            len(set(d[0].artist for d in data)) == 1:
+        for track in add_album_tracks(session, finder, album, retry2):
+            yield track
+            retry2 = [] # we found the artist
     if retry2:
         warning('missing artists in %s' % album.path)
 
