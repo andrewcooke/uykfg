@@ -14,7 +14,6 @@ Finally we can discard unused artists.
 
 from functools import partial
 from logging import debug, warning
-from collections import Counter
 from os import walk
 from os.path import join
 
@@ -105,7 +104,7 @@ def add_tracks(session, finder, album, data):
     # first, try identify artist with track
     for (tag, file, modified) in data:
         try: yield add_single_track(session, finder, album, tag, file, modified)
-        except FinderError as e: retry.append((tag, file, modified))
+        except FinderError: retry.append((tag, file, modified))
     # now check to see if we identified on a later track
     for (tag, file, modified) in retry:
         try: yield add_album_track(session, album, tag, file, modified)
@@ -113,7 +112,8 @@ def add_tracks(session, finder, album, data):
     # if we failed for the entire album, and have a single artist, try combining tracks
     if len(remaining) == len(data) and len(data) > 1 and \
             len(set(d[0].artist for d in data)) == 1:
-        for track in add_album_tracks(): yield track
+        for track in add_album_tracks(session, finder, album, remaining):
+            yield track
     elif remaining:
         warning('missing artists in %s' % album.path)
 
