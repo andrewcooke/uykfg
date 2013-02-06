@@ -132,7 +132,7 @@ def get_album_artist(session, name, album):
         .filter(Artist.name == name, Album.id == album.id).distinct().one()
 
 def add_track_artist(session, finder, tag):
-    debug('delegating artist %s, track %s to finder' % (tag.artist, tag,title))
+    debug('delegating artist %s, track %s to finder' % (tag.artist, tag.title))
     return finder.find_track_artist(session, tag.artist, tag.title)
 
 def add_album_track(session, album, tag, file, modified):
