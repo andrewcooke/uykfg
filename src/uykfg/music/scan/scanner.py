@@ -101,11 +101,18 @@ def file_data(path, files):
 
 def add_tracks(session, finder, album, data):
     retry0, retry1, retry2 = [], [], []
+    single_artist = len(set(d[0].artist for d in data)) == 1
     # first, try identify artist with track
+    found = False
     for (tag, file, modified) in data:
-        try: yield add_single_track(session, finder, album, tag, file, modified)
-        except FinderError: retry0.append((tag, file, modified))
-    # now check to see if we identified on a later track
+        if single_artist and found: # we can reuse this
+            retry0.append((tag, file, modified))
+        else:
+            try:
+                yield add_single_track(session, finder, album, tag, file, modified)
+                found = True
+            except FinderError: retry0.append((tag, file, modified))
+    # now check to see if we identified on a later track (reuse above)
     for (tag, file, modified) in retry0:
         try: yield add_album_track(session, album, tag, file, modified)
         except NoResultFound: retry1.append((tag, file, modified))
