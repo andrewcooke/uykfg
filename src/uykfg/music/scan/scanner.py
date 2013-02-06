@@ -14,6 +14,7 @@ Finally we can discard unused artists.
 
 from functools import partial
 from logging import debug, warning
+from collections import Counter
 from os import walk
 from os.path import join
 
@@ -100,33 +101,52 @@ def file_data(path, files):
             yield tag, file, modified
 
 def add_tracks(session, finder, album, data):
+    retry, remaining = [], []
+    # first, try identify artist with track
     for (tag, file, modified) in data:
-        try:
-            yield add_track(session, finder, album, tag, file, modified)
-        except FinderError as e:
-            warning(e)
+        try: yield add_single_track(session, finder, album, tag, file, modified)
+        except FinderError as e: retry.append((tag, file, modified))
+    # now check to see if we identified on a later track
+    for (tag, file, modified) in retry:
+        try: yield add_album_track(session, album, tag, file, modified)
+        except NoResultFound: remaining.append((tag, file, modified))
+    # if we failed for the entire album, and have a single artist, try combining tracks
+    if len(remaining) == len(data) and len(data) > 1 and \
+            len(set(d[0].artist for d in data)) == 1:
+        for track in add_album_tracks(): yield track
+    elif remaining:
+        warning('missing artists in %s' % album.path)
 
-def add_track(session, finder, album, tag, file, modified):
-    artist = add_artist(session, finder, album, tag)
-    debug('creating track %s' % tag.track)
+def add_single_track(session, finder, album, tag, file, modified):
+    try: artist = get_album_artist(session, tag.artist, album)
+    except NoResultFound: artist = add_track_artist(session, finder, tag)
+    return add_track(artist, tag.title, tag.track, album, file, modified)
+
+def get_album_artist(session, name, album):
+    return session.query(Artist).join('tracks', 'album')\
+        .filter(Artist.name == name, Album.id == album.id).distinct().one()
+
+def add_track_artist(session, finder, tag):
+    debug('delegating artist %s to finder' % tag.artist)
+    return finder.find_track_artist(session, tag.artist, tag.title)
+
+def add_album_track(session, album, tag, file, modified):
+    artist = get_album_artist(session, tag.artist, album)
+    return add_track(artist, tag.title, tag.track, album, file, modified)
+
+def add_track(artist, title, number, album, file, modified):
+    debug('creating track %s' % title)
     return Track(artist=artist, album=album,
-        number=tag.track, name=tag.title, file=file, modified=modified)
+        number=number, name=title, file=file, modified=modified)
 
-def add_artist(session, finder, album, tag):
-    '''The music db reflects only the name from the ID3 tag, so there may
-    be multiple artists with the same name.  The finder is responsible for
-    disambiguation and may return either a new or an existing instance of
-    Artist, as appropriate.
-
-    But for efficiency we use the artist from the album, if it exists (ie
-    for non-first tracks on single artist albums).'''
+def add_album_tracks(session, finder, album, data):
+    titles = [tag.title for (tag, file, modified) in data]
     try:
-        debug('searching for artist %s in %s' % (tag.artist, album.name))
-        return session.query(Artist).join('tracks', 'album')\
-            .filter(Artist.name == tag.artist, Album.id == album.id).distinct().one()
-    except NoResultFound:
-        debug('delegating artist %s to finder' % tag.artist)
-        return finder.find_artist(session, tag)
+        artist = finder.find_tracks_artist(session, data[0][0].artist, titles)
+        for (tag, file, modified) in data:
+            yield add_track(artist, tag.title, tag.track, album, file, modified)
+    except FinderError:
+        warning('no artist found for %s' % album.path)
 
 def cull_artists(session):
     debug('removing unused artists')

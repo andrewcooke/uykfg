@@ -1,6 +1,7 @@
 
 from logging import debug
 from json import loads
+from collections import Counter
 from sqlalchemy.orm.exc import NoResultFound
 
 from uykfg.music.db import startup
@@ -26,31 +27,23 @@ class Finder:
     def __init__(self, config, session):
         self._api = Cache(RateLimitingApi(config.api_key), session)
 
-    def find_artist(self, session, id3):
-        '''
-        search for the track first, since that is more likely to disambiguate.
-        '''
+    def find_track_artist(self, session, artist, title):
         try:
-            return self._artist(session, id3.artist, *self._song_search(id3.artist, id3.title))
-        except (AttributeError, IndexError) as e:
-            debug(e)
-            try:
-                return self._artist(session, id3.artist, *self._artist_search(id3.artist))
-            except (AttributeError, IndexError) as e:
-                debug(e)
-                raise FinderError(id3.artist)
+            return self._artist(session, artist, *next(self._song_search(title, artist=artist)))
+        except StopIteration:
+            raise FinderError(artist)
 
-    def _song_search(self, artist, title):
-        song = unpack(self._api('song', 'search', artist=artist, title=title,
-                results=1, sort='artist_familiarity-desc'),
-            'response', 'songs', 0)
-        return song['artist_id'], song['artist_name']
+    def _song_search(self, title, artist=None, results=1):
+        params = {'title': title, 'results': results, 'sort': 'artist_familiarity-desc'}
+        if artist: params['artist'] = artist
+        for song in unpack(self._api('song', 'search', **params), 'response', 'songs'):
+            yield song['artist_id'], song['artist_name']
 
-    def _artist_search(self, artist):
-        artist = unpack(self._api('artist', 'search', name=artist,
-                    results=1, sort='familiarity-desc'),
-            'response', 'artists', 0)
-        return artist['id'], artist['name']
+#    def _artist_search(self, artist):
+#        artist = unpack(self._api('artist', 'search', name=artist,
+#                    results=1, sort='familiarity-desc'),
+#            'response', 'artists', 0)
+#        return artist['id'], artist['name']
 
     def _artist(self, session, id3_name, nest_id, nest_name):
         commit = False
@@ -69,6 +62,18 @@ class Finder:
             commit = True
         if commit: session.commit()
         return nest_artist.artist
+
+    def find_tracks_artist(self, session, artist, titles):
+        artists = Counter()
+        for title in titles:
+            artists.update(self._song_search(title, results=5))
+            debug(artists)
+        if artists:
+            (id, name), score = artists.most_common(1)[0]
+            debug('voted for %s:%s (%d)' % (name, id, score))
+            return self._artist(session, artist, id, name)
+        else:
+            raise FinderError(', '.join(titles))
 
 
 if __name__ == '__main__':

@@ -2,7 +2,6 @@
 from unittest import TestCase
 
 from uykfg.music.db import startup
-from uykfg.music.db.catalogue import Artist
 from uykfg.nest.db import NestArtist
 from uykfg.nest.finder import Finder, FinderError
 from uykfg.support.configure import Config
@@ -15,13 +14,6 @@ class FinderTest(TestCase):
         session = startup(config)
         return session, Finder(config, session)
 
-    def id3(self, artist, title):
-        class Object: pass
-        id3 = Object()
-        id3.artist = artist
-        id3.title = title
-        return id3
-
     def assert_artist(self, session, artist, music_name, nest_name):
         assert artist.name == music_name, artist.name
         nest_artist = session.query(NestArtist).filter(NestArtist.name == nest_name).one()
@@ -30,21 +22,18 @@ class FinderTest(TestCase):
 
     def test_track(self):
         session, finder = self.finder()
-        id3 = self.id3('Miles', 'Blue')
-        artist = finder.find_artist(session, id3)
+        artist = finder.find_track_artist(session, 'Miles', 'Blue')
         self.assert_artist(session, artist, 'Miles', 'Miles Davis')
 
-    def test_artist(self):
+    def test_tracks(self):
         session, finder = self.finder()
-        id3 = self.id3('Miles', 'VCFGADSAY')
-        artist = finder.find_artist(session, id3)
-        self.assert_artist(session, artist, 'Miles', 'Miles')
+        artist = finder.find_tracks_artist(session, 'Miles', ['So What', 'All Blues', 'Noise'])
+        self.assert_artist(session, artist, 'Miles', 'Miles Davis')
 
     def test_bad(self):
         session, finder = self.finder()
-        id3 = self.id3('YFSDFDS', 'VCFGADSAY')
         try:
-            finder.find_artist(session, id3)
+            finder.find_track_artist(session, 'XUSAIH', 'xaSXSA')
             assert False, 'Expected failure'
         except FinderError:
             pass
