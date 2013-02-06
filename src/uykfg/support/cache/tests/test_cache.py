@@ -32,7 +32,7 @@ class CacheTest(TestCase):
         assert cached_stringify.misses == 2, cached_stringify.misses
 
         assert cached_stringify._owner.total_size == 154, cached_stringify._owner.total_size
-        cached_stringify = Cache(stringify, Session, max_size=77, max_lifetime=1)
+        cached_stringify = Cache(stringify, session, max_size=77, value_lifetime=1)
         self._assert(cached_stringify(1, 2, three=6), "(1, 2) {'three': 6}")
         assert cached_stringify.misses == 1, cached_stringify.misses
         assert cached_stringify._owner.total_size == 77, cached_stringify._owner.total_size
@@ -40,4 +40,3 @@ class CacheTest(TestCase):
         self._assert(cached_stringify(1, 2, three=7), "(1, 2) {'three': 7}")
         assert cached_stringify.misses == 2, cached_stringify.misses
         assert cached_stringify._owner.total_size == 77, cached_stringify._owner.total_size
-        assert False
