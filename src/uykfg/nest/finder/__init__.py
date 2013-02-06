@@ -61,7 +61,7 @@ class Finder:
         artists = Counter()
         for title in titles:
             try:
-                artists.update(self._song_search(title, results=5))
+                artists.update(self._song_search(title, results=15))
                 debug(artists)
             except URLError as e: debug(e)
         if artists:
