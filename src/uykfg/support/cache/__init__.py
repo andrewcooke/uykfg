@@ -1,6 +1,6 @@
 
 from hashlib import sha1
-from logging import debug
+from logging import debug, warning
 from pickle import dumps, loads
 from random import random
 from time import time
@@ -60,16 +60,21 @@ class Cache:
                 value = e
                 exception = True
             debug('caching: %r' % value)
-            encoded_value = self._encode_value(value)
-            size = len(key) + len(encoded_value)
-            if exception: expires = int(time() + self._owner.exception_lifetime)
-            else: expires = int(time() + self._owner.value_lifetime * (0.5 + random()))
-            self._session.add(CacheData(owner=self._owner, key=key,
-                value=encoded_value, size=size, exception=exception,
-                expires=expires))
-            self.misses += 1
-            self._owner.total_size += size
-            self._reduce()
+            try:
+                encoded_value = self._encode_value(value)
+                size = len(key) + len(encoded_value)
+                if exception: expires = int(time() + self._owner.exception_lifetime)
+                else: expires = int(time() + self._owner.value_lifetime * (0.5 + random()))
+                self._session.add(CacheData(owner=self._owner, key=key,
+                    value=encoded_value, size=size, exception=exception,
+                    expires=expires))
+                self.misses += 1
+                self._owner.total_size += size
+                self._reduce()
+            except Exception as e:
+                warning('could not cache %r: %s' % (value, e))
+                if exception: raise value
+                else: return value
         self._session.commit()
         if exception: raise value
         else: return value
