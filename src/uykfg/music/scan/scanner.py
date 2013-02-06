@@ -100,21 +100,26 @@ def file_data(path, files):
             yield tag, file, modified
 
 def add_tracks(session, finder, album, data):
-    retry, remaining = [], []
+    retry0, retry1, retry2 = [], [], []
     # first, try identify artist with track
     for (tag, file, modified) in data:
         try: yield add_single_track(session, finder, album, tag, file, modified)
-        except FinderError: retry.append((tag, file, modified))
+        except FinderError: retry0.append((tag, file, modified))
     # now check to see if we identified on a later track
-    for (tag, file, modified) in retry:
+    for (tag, file, modified) in retry0:
         try: yield add_album_track(session, album, tag, file, modified)
-        except NoResultFound: remaining.append((tag, file, modified))
+        except NoResultFound: retry1.append((tag, file, modified))
     # if we failed for the entire album, and have a single artist, try combining tracks
-    if len(remaining) == len(data) and len(data) > 1 and \
+    if len(retry1) == len(data) and len(data) > 1 and \
             len(set(d[0].artist for d in data)) == 1:
-        for track in add_album_tracks(session, finder, album, remaining):
+        for track in add_album_tracks(session, finder, album, retry1):
             yield track
-    elif remaining:
+            retry1 = [] # we found the artist
+    # finally, use artist name alone
+    for (tag, file, modified) in retry1:
+        try: yield add_artist(session, finder, album, tag, file, modified)
+        except FinderError: retry2.append((tag, file, modified))
+    if retry2:
         warning('missing artists in %s' % album.path)
 
 def add_single_track(session, finder, album, tag, file, modified):
@@ -127,11 +132,16 @@ def get_album_artist(session, name, album):
         .filter(Artist.name == name, Album.id == album.id).distinct().one()
 
 def add_track_artist(session, finder, tag):
-    debug('delegating artist %s to finder' % tag.artist)
+    debug('delegating artist %s, track %s to finder' % (tag.artist, tag,title))
     return finder.find_track_artist(session, tag.artist, tag.title)
 
 def add_album_track(session, album, tag, file, modified):
     artist = get_album_artist(session, tag.artist, album)
+    return add_track(artist, tag.title, tag.track, album, file, modified)
+
+def add_artist(session, finder, album, tag, file, modified):
+    debug('delegating artist %s to finder' % tag.artist)
+    artist = finder.find_artist(session, tag.artist)
     return add_track(artist, tag.title, tag.track, album, file, modified)
 
 def add_track(artist, title, number, album, file, modified):

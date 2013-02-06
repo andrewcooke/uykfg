@@ -1,6 +1,7 @@
 
 from logging import debug
 from json import loads
+from urllib.error import URLError
 from collections import Counter
 from sqlalchemy.orm.exc import NoResultFound
 
@@ -30,7 +31,7 @@ class Finder:
     def find_track_artist(self, session, artist, title):
         try:
             return self._artist(session, artist, *next(self._song_search(title, artist=artist)))
-        except StopIteration:
+        except (StopIteration, URLError):
             raise FinderError(artist)
 
     def _song_search(self, title, artist=None, results=1):
@@ -38,12 +39,6 @@ class Finder:
         if artist: params['artist'] = artist
         for song in unpack(self._api('song', 'search', **params), 'response', 'songs'):
             yield song['artist_id'], song['artist_name']
-
-#    def _artist_search(self, artist):
-#        artist = unpack(self._api('artist', 'search', name=artist,
-#                    results=1, sort='familiarity-desc'),
-#            'response', 'artists', 0)
-#        return artist['id'], artist['name']
 
     def _artist(self, session, id3_name, nest_id, nest_name):
         commit = False
@@ -66,16 +61,29 @@ class Finder:
     def find_tracks_artist(self, session, artist, titles):
         artists = Counter()
         for title in titles:
-            artists.update(self._song_search(title, results=5))
-            debug(artists)
+            try:
+                artists.update(self._song_search(title, results=5))
+                debug(artists)
+            except URLError as e: debug(e)
         if artists:
             (id, name), score = artists.most_common(1)[0]
-            if score > max(2, len(titles) / 2):
+            if score > max(3, len(titles) / 2):
                 debug('voted for %s:%s (%d)' % (name, id, score))
                 return self._artist(session, artist, id, name)
             else:
                 debug('inconclusive vote (%s: %d)' % (name, score))
         raise FinderError(', '.join(titles))
+
+    def find_artist(self, session, artist):
+        try: return self._artist(session, artist, *self._artist_search(artist))
+        except (IndexError, AttributeError, URLError): raise FinderError(artist)
+
+    def _artist_search(self, artist):
+        artist = unpack(self._api('artist', 'search', name=artist,
+                    results=1, sort='familiarity-desc'),
+            'response', 'artists', 0)
+        return artist['id'], artist['name']
+
 
 
 if __name__ == '__main__':

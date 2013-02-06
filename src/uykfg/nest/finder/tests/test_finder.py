@@ -25,6 +25,11 @@ class FinderTest(TestCase):
         artist = finder.find_track_artist(session, 'Miles', 'Blue')
         self.assert_artist(session, artist, 'Miles', 'Miles Davis')
 
+    def test_artist(self):
+        session, finder = self.finder()
+        artist = finder.find_artist(session, 'Miles')
+        self.assert_artist(session, artist, 'Miles', 'Miles')
+
     def test_tracks(self):
         session, finder = self.finder()
         artist = finder.find_tracks_artist(session, 'Miles', ['So What', 'All Blues', 'Noise'])
