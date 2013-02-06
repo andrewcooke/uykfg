@@ -19,6 +19,12 @@ def unpack(json, *path):
     for name in path: json = json[name]
     return json
 
+def single_artist(artists):
+    known = set()
+    for (id, name) in artists:
+        if id not in known:
+            yield id, name
+
 
 class FinderError(Exception): pass
 
@@ -61,7 +67,7 @@ class Finder:
         artists = Counter()
         for title in titles:
             try:
-                artists.update(self._song_search(title, results=15))
+                artists.update(single_artist(self._song_search(title, results=15)))
                 debug(artists)
             except URLError as e: debug(e)
         if artists:
