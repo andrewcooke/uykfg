@@ -24,6 +24,7 @@ def single_artist(artists):
     for (id, name) in artists:
         if id not in known:
             yield id, name
+            known.add(id)
 
 
 class FinderError(Exception): pass
