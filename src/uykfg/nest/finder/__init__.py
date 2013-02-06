@@ -67,7 +67,7 @@ class Finder:
             except URLError as e: debug(e)
         if artists:
             (id, name), score = artists.most_common(1)[0]
-            if score > max(3, len(titles) / 2) and len(artists) < 10:
+            if score > max(3, len(titles) / 2):
                 debug('voted for %s:%s (%d)' % (name, id, score))
                 return self._artist(session, artist, id, name)
             else:
