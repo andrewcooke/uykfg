@@ -5,7 +5,6 @@ from sqlalchemy.orm import aliased
 
 from uykfg.music.db.catalogue import Artist, Track, Album
 from uykfg.music.db.network import Link
-from uykfg.support.sequences import lmap
 
 
 def link_all(session, linker):
@@ -20,9 +19,9 @@ def delete_src(session, artist):
     session.commit()
 
 def link_same_album(session, src):
-    artist1, track1, track2, artist2 = lmap(aliased, [Artist, Track, Track, Artist])
+    artist1, track1, track2, artist2 = map(aliased, [Artist, Track, Track, Artist])
     print(artist1, track1, artist2, track2)
     for dst in session.query(distinct(artist1))\
-            .join(track1, Album, track2, artist2)\
+            .join(Track, Album, Track, artist2)\
             .filter(artist2.id == src.id, artist1.id != artist2.id).all():
         print(dst)
