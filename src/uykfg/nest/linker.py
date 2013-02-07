@@ -20,7 +20,7 @@ class Linker:
         try:
             id = session.query(NestArtist).join('artists').filter(Artist.id == src.id).one().id
             start, results, found = 0, 12, 0
-            while found < target and results < 100:
+            while found < target and results-start < 100:
                 found = self._link_delta(session, src, start, results, found, target, id)
                 start = results
                 results *= 2
