@@ -27,7 +27,9 @@ class Linker:
                     nest_artist = session.query(NestArtist)\
                             .filter(NestArtist.id == artist['id']).one()
                     for dst in nest_artist.artists:
-                        if not session.query(Link).filter(src=src, dst=dst).count():
+                        if not session.query(Link)\
+                                .filter(Link.src == src, Link.dst == dst)\
+                                .count():
                             debug('linking %s to %s' % (src.name, dst.name))
                             session.add(Link(src=src, dst=dst))
                             commit = True
