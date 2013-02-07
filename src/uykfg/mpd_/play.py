@@ -11,21 +11,19 @@ def play_links(session):
         if empty(mpd):
             queue_random(mpd, session)
         else:
-            penultimate = almost_empty(mpd)
-            if penultimate: queue_next(mpd, session, penultimate)
+            last = almost_empty(mpd)
+            if last: queue_next(mpd, session, last)
         sleep(10)
 
 def empty(mpd):
     return not bool(mpd.playlistinfo(0))
 
 def almost_empty(mpd):
-    penultimate = mpd.playlistinfo(1)
-    if penultimate:
-        penultimate = penultimate[0]
-        if not mpd.playlistinfo(1): return penultimate
-    return False
+    last = mpd.playlistinfo(0)
+    if last and not mpd.playlistinfo(1): return last[0]
+    else: return False
 
-def queue_next(mpd, session, penultimate):
+def queue_next(mpd, session, last):
     debug('next')
 
 def queue_random(mpd, session):
