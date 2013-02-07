@@ -8,8 +8,8 @@ from uykfg.support.db import TableBase
 
 
 artists_to_artists = Table('nest_artists_and_music_artists', TableBase.metadata,
-    Column('nest_artist_id', Integer, ForeignKey('nest_artists.id')),
-    Column('music_artist_id', Integer, ForeignKey('music_artists.id'))
+    Column('nest_artist_id', UnicodeText, ForeignKey('nest_artists.id'), nullable=False),
+    Column('music_artist_id', Integer, ForeignKey('music_artists.id'), nullable=False)
 )
 
 
