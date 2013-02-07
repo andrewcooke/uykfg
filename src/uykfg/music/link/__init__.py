@@ -24,6 +24,6 @@ def link_same_album(session, src):
 #    track1 = aliased(Track)
 #    track2 = aliased(Track)
     for dst in session.query(artist1).join(track1, Album, track2, artist2)\
-            .filter(artist1.c.id == src.id, artist1.c.id != artist2.c.id)\
+            .filter(artist1.id == src.id, artist1.id != artist2.id)\
             .select(artist2.distinct()).all():
         print(dst)
