@@ -19,7 +19,7 @@ class TestCatalogue(TestCase):
         session.add(track1)
         track2 = Track(name='track2', artist=artist, number='2', file='file2', modified=time())
         session.add(track2)
-        album = Album(name='album', tracks=[track1, track2])
+        album = Album(name='album', tracks=[track1, track2], path='/')
         session.add(album)
         session.commit()
 

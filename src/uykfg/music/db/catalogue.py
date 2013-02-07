@@ -53,8 +53,6 @@ class Track(__Common):
     album = relationship(Album, backref='tracks')
     file = Column(UnicodeText, nullable=False)
     number = Column(Integer, nullable=False)
-    # use an integer for times so that we can test for exact matches
-    # but be careful in comparisons with floats!
     modified = Column(Integer, nullable=False)
 
     def __str__(self):
