@@ -1,5 +1,6 @@
 
 from logging import debug
+from sqlalchemy import distinct
 from sqlalchemy.orm import aliased
 
 from uykfg.music.db.catalogue import Artist, Track, Album
@@ -19,7 +20,7 @@ def delete_src(session, artist):
 
 def link_same_album(session, src):
     artist1, track1, track2, artist2 = map(aliased, [Artist, Track, Track, Artist])
-    for dst in session.query(artist1.distinct())\
+    for dst in session.query(distinct(artist1))\
             .join(track1, Album, track2, artist2)\
             .filter(artist2.id == src.id, artist1.id != artist2.id).all():
         print(dst)
