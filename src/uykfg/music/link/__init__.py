@@ -18,7 +18,7 @@ def delete_src(session, artist):
     session.commit()
 
 def link_same_album(session, src):
-    artist1, track1, track2, artist2 = map(aliased(), [Artist, Track, Track, Artist])
+    artist1, track1, track2, artist2 = map(aliased, [Artist, Track, Track, Artist])
 #    artist1 = aliased(Artist)
 #    artist2 = aliased(Artist)
 #    track1 = aliased(Track)
