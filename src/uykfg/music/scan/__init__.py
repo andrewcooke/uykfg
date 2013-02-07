@@ -133,6 +133,7 @@ def add_tracks(session, finder, album, data):
         for (tag, file, modified) in retry2:
             if tag.artist in local: artist = local[tag.artist]
             else:
+                debug('creating local artist %s' % tag.artist)
                 artist = Artist(name=tag.artist)
                 session.add(artist)
                 local[tag.artist] = artist
