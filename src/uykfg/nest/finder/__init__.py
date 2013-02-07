@@ -7,7 +7,7 @@ from sqlalchemy.orm.exc import NoResultFound
 
 from uykfg.music.db import startup
 from uykfg.music.db.catalogue import Artist
-from uykfg.nest.api.rate import RateLimitingApi
+from uykfg.nest.api import RateLimitingApi
 from uykfg.nest.db import NestArtist
 from uykfg.support.cache import Cache
 from uykfg.support.configure import Config

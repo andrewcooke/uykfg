@@ -6,8 +6,8 @@ from threading import Thread, Lock
 from time import time, sleep
 from unittest import TestCase
 
-from uykfg.music.support.configure import Config
-from uykfg.nest.api.rate import RateLimitingApi
+from uykfg.support.configure import Config
+from uykfg.nest.api import RateLimitingApi
 
 
 class UrlTest(TestCase):

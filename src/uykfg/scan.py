@@ -1,6 +1,6 @@
 
 from uykfg.music.db import startup
-from uykfg.music.scan.scanner import scan_all
+from uykfg.music.scan import scan_all
 from uykfg.nest.finder import Finder
 from uykfg.support.configure import Config
 
