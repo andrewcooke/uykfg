@@ -5,7 +5,7 @@ tracks are files within that directory.  Tracks have a single artist
 (which may be a list of names etc).  We don't try to unify individuals
 (artists are "groups", not "performers").
 
-Different artists can have the same name,
+Different artists can have the same name.
 '''
 
 from sqlalchemy.orm import relationship
