@@ -1,6 +1,7 @@
 #!/bin/bash
 
 sqlite3 ~/.uykfgdb <<EOF
+drop table nest_artists_and_music_artists;
 drop table nest_artists;
 drop table music_artists;
 drop table music_albums;
