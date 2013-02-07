@@ -6,7 +6,7 @@ from mpd import MPDClient
 
 def play_links(session):
     mpd = MPDClient()
-    mpd.connect("localhost", 6000)
+    mpd.connect("localhost", 6600)
     while True:
         if almost_empty(mpd): queue_next(mpd, session)
         sleep(10)
