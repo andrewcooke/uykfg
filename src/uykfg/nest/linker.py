@@ -1,5 +1,6 @@
 
 from logging import debug
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm.exc import NoResultFound
 
 from uykfg.music.db.catalogue import Artist
@@ -27,8 +28,11 @@ class Linker:
                             .filter(NestArtist.id == artist['id']).one()
                     for dst in nest_artist.artists:
                         debug('linking %s to %s' % (src.name, dst.name))
-                        session.add(Link(src=src, dst=dst))
-                        commit = True
+                        try:
+                            session.add(Link(src=src, dst=dst))
+                            commit = True
+                        except IntegrityError:
+                            pass # duplicate link
                 except NoResultFound:
                     pass
             if commit: session.commit()
