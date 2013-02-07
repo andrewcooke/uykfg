@@ -1,4 +1,6 @@
 
+from json import loads
+from logging import debug
 
 
 def seq_and(sequence, empty=True):
@@ -23,3 +25,11 @@ def lfilter(predicate, sequence):
 
 def lmap(function, sequence):
     return list(map(function, sequence))
+
+
+def unpack(json, *path):
+    json = loads(json.decode('utf8'))
+    debug(json)
+    for name in path: json = json[name]
+    return json
+

@@ -11,13 +11,8 @@ from uykfg.nest.api import RateLimitingApi
 from uykfg.nest.db import NestArtist
 from uykfg.support.cache import Cache
 from uykfg.support.configure import Config
+from uykfg.support.sequences import unpack
 
-
-def unpack(json, *path):
-    json = loads(json.decode('utf8'))
-    debug(json)
-    for name in path: json = json[name]
-    return json
 
 def single_artist(artists):
     known = set()

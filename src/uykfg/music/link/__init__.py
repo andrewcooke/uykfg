@@ -1,6 +1,5 @@
 
 from logging import debug
-from sqlalchemy import distinct
 from sqlalchemy.orm import aliased
 
 from uykfg.music.db.catalogue import Artist, Track, Album
@@ -11,7 +10,7 @@ def link_all(session, linker):
     for artist in session.query(Artist).all():
         delete_src(session, artist)
         link_same_album(session, artist)
-#        linker.link(session, artist)
+        linker.link(session, artist)
     debug('done!')
 
 def delete_src(session, artist):
