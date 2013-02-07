@@ -4,7 +4,7 @@ from time import sleep
 from mpd import MPDClient
 
 
-def play(session):
+def play_links(session):
     mpd = MPDClient()
     mpd.connect("localhost", 6000)
     while True:
@@ -14,3 +14,6 @@ def play(session):
 def almost_empty(mpd):
     print(mpd.playlistinfo(1))
     return False
+
+def queue_next(mpd, session):
+    pass
