@@ -24,7 +24,7 @@ def almost_empty(mpd):
     else: return False
 
 def queue_next(mpd, session, last):
-    debug('next')
+    debug('next: %s' % last)
 
 def queue_random(mpd, session):
     debug('random')
