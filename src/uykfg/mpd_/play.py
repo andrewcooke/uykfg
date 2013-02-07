@@ -1,10 +1,13 @@
+
 from logging import debug
+from os.path import split, join
 from time import sleep
 
 from mpd import MPDClient
+from uykfg.music.db.catalogue import Album, Track
 
 
-def play_links(session):
+def play_links(session, config):
     mpd = MPDClient()
     mpd.connect("localhost", 6600)
     while True:
@@ -12,7 +15,7 @@ def play_links(session):
             queue_random(mpd, session)
         else:
             last = almost_empty(mpd)
-            if last: queue_next(mpd, session, last)
+            if last: queue_next(mpd, session, config.mp3_path, last)
         sleep(10)
 
 def empty(mpd):
@@ -23,8 +26,12 @@ def almost_empty(mpd):
     if last and not mpd.playlistinfo(1): return last[0]
     else: return False
 
-def queue_next(mpd, session, last):
+def queue_next(mpd, session, mp3_path, last):
     debug('next: %s' % last)
+    path, file = split(last['file'])
+    path = join(mp3_path, path)
+    track = session.query(Track).join(Album).filter(Album.path == path, Track.file == file).one()
+    debug(track)
 
 def queue_random(mpd, session):
     debug('random')
