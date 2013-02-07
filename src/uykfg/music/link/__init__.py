@@ -18,8 +18,12 @@ def delete_src(session, artist):
     session.commit()
 
 def link_same_album(session, src):
-    artist1, tracks1, album, tracks2, artist2 = map(alias, [Artist, Track, Album, Track, Artist])
-    for dst in session.query(artist1).join(tracks1, album, tracks2, artist2)\
+#    artist1, tracks1, album, tracks2, artist2 = map(alias, [Artist, Track, Album, Track, Artist])
+    artist1 = alias(Artist)
+    artist2 = alias(Artist)
+    track1 = alias(Track)
+    track2 = alias(Track)
+    for dst in session.query(artist1).join(track1, Album, track2, artist2)\
             .filter(artist1.c.id == src.id, artist1.c.id != artist2.c.id)\
             .select(artist2.distinct()).all():
         print(dst)
