@@ -21,7 +21,7 @@ class Linker:
             id = session.query(NestArtist).join('artists').filter(Artist.id == src.id).one().id
             start, results, found = 0, 12, 0
             while found < target and results < 100:
-                found += self._link_delta(session, src, start, results, target, id)
+                found = self._link_delta(session, src, start, results, found, target, id)
                 start = results
                 results *= 2
         except NoResultFound:
@@ -29,8 +29,8 @@ class Linker:
         except (AttributeError, IndexError) as e:
             debug(e)
 
-    def _link_delta(self, session, src, start, results, target, id):
-        found = 0
+    def _link_delta(self, session, src, start, results, found, target, id):
+        commit = False
         for artist in unpack(self._api('artist', 'similar', id=id,
                                        start=start, results=results-start),
                              'response', 'artists'):
@@ -43,8 +43,9 @@ class Linker:
                         debug('linking %s to %s' % (src.name, dst.name))
                         session.add(Link(src=src, dst=dst))
                         found += 1
+                        commit = True
             except NoResultFound:
                 pass
-        if found: session.commit()
+        if commit: session.commit()
         return found
 
