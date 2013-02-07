@@ -20,6 +20,6 @@ def delete_src(session, artist):
 def link_same_album(session, src):
     artist1, tracks1, album, tracks2, artist2 = map(alias, [Artist, Track, Album, Track, Artist])
     for dst in session.query(artist1).join(tracks1, album, tracks2, artist2)\
-            .filter(artist1.id == src.id, artist1.id != artist2.id)\
+            .filter(artist1.c.id == src.id, artist1.c.id != artist2.c.id)\
             .select(artist2.distinct()).all():
         print(dst)
