@@ -1,7 +1,7 @@
 
 from uykfg.music.db import startup
 from uykfg.support.configure import Config
-from uykfg.mpd.play import play_links
+from uykfg.mpd_.play import play_links
 
 
 def play():
