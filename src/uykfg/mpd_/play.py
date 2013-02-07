@@ -35,7 +35,7 @@ def random_neighbour(mp3_path, track):
     return join(mp3_path, track.album.path, track.file)
 
 def add_to_playlist(mpd, path):
-    mpd.add(path)
+    mpd.add('file://%s' % path)
 
 def find_track(session, mp3_path, path):
     path, file = split(path)
