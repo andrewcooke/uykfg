@@ -3,6 +3,7 @@ from unittest import TestCase
 
 from uykfg.music.db import startup
 from uykfg.music.db.catalogue import Artist
+from uykfg.music.db.network import Link
 from uykfg.support.configure import Config
 
 
@@ -16,5 +17,6 @@ class TestNetwork(TestCase):
         session.add(alice)
         bob = Artist(name='bob')
         session.add(bob)
-        bob.srcs.append(alice)
-        assert len(alice.dsts) == 1, alice.dsts
+        session.add(Link(src=bob, dst=alice))
+        assert len(alice.srcs) == 1, alice.srcs
+        assert alice.srcs[0].src == bob
