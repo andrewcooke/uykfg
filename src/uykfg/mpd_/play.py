@@ -35,10 +35,9 @@ def queue_next(mpd, session, mp3_path, last):
     add_to_playlist(mpd, mp3_path, random_neighbour(session, track))
 
 def random_neighbour(session, track):
-    neighbours = [nbr
+    neighbours = [src
                   for link in session.query(Link).filter(Link.dst == track.artist).all()
-                  for src in link.srcs
-                  for nbr in src.tracks]
+                  for src in link.src.tracks]
     debug('choice: %d %s' % (len(neighbours), neighbours))
     return choice(neighbours)
 
