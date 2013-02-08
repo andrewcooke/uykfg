@@ -7,7 +7,7 @@ from uykfg.music.db.network import Link
 
 
 def link_all(session, linker):
-    for artist in session.query(Artist).all():
+    for artist in session.query(Artist).order_by('random()').all():
         delete_src(session, artist)
         link_same_album(session, artist)
         linker.link(session, artist)
