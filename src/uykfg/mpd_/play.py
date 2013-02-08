@@ -3,6 +3,7 @@ from os.path import split, join
 from time import sleep
 
 from mpd import MPDClient
+from uykfg.music.db.catalogue import Track, Album
 
 from uykfg.music.play import random_track, neighbour_track
 
@@ -16,7 +17,9 @@ def play_links(session, config):
         else:
             last = almost_empty(mpd)
             if last: queue(mpd, config.mp3_path,
-                           neighbour_track(session, last, config.max_links))
+                           neighbour_track(session,
+                                find_track(session, config.mp3_path, last['file']),
+                                config.max_links))
         sleep(1)
 
 def empty(mpd):
@@ -31,4 +34,9 @@ def queue(mpd, mp3_path, track):
     path = join(track.album.path, track.file)[len(mp3_path):]
     if path.startswith('/'): path = path[1:]
     mpd.findadd('file', path)
+
+def find_track(session, mp3_path, path):
+    path, file = split(path)
+    path = join(mp3_path, path)
+    return session.query(Track).join(Album).filter(Album.path == path, Track.file == file).one()
 
