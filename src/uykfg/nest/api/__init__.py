@@ -71,7 +71,7 @@ class RateLimitingApi:
 
     def __init__(self, api_key, scheme='http', netloc='developer.echonest.com',
                  prefix=['api', 'v4'],
-                 period=60, rate_limit=120, target=(0.8, 0.9), slower=1.1, faster=0.9):
+                 period=60, rate_limit=40, target=(0.8, 0.9), slower=1.1, faster=0.9):
 
         self._api_key = api_key
         self._scheme = scheme
