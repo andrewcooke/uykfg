@@ -14,16 +14,17 @@ def random_track(session):
     debug('random: %s / %s' % (track.name, track.artist.name))
     return track
 
-def neighbour_track(session, track, max_links):
+def neighbour_track(session, prev, max_links):
     neighbours = []
     # favour src as that gives more diversity (obscure bands tend to
     # be like common bands, but not vice-versa)
-    neighbours = collect_src(session, track, neighbours, max_links)
-    neighbours = collect_dst(session, track, neighbours, max_links)
-    neighbours = collect_album(session, track, neighbours, max_links)
-    neighbours = collect_self(track, neighbours, max_links)
-    track = choice(expand_neighbours(neighbours, track))
-    debug('neighbour: %s / %s' % (track.name, track.artist.name))
+    neighbours = collect_src(session, prev, neighbours, max_links)
+    neighbours = collect_dst(session, prev, neighbours, max_links)
+    neighbours = collect_album(session, prev, neighbours, max_links)
+    neighbours = collect_self(prev, neighbours, max_links)
+    track = choice(expand_neighbours(neighbours, prev))
+    debug('neighbour: %s / %s -> %s / %s' %
+          (prev.name, prev.artist.name, track.name, track.artist.name))
     return track
 
 def collect_src(session, track, neighbours, max_links):
