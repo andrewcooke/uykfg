@@ -37,6 +37,7 @@ def accumulate(neighbours, max_links, artists):
     for artist in artists:
         neighbours.append(artist)
         if len(neighbours) >= max_links: return
+    return neighbours
 
 def collect_album(session, track, neighbours, max_links):
     artist1, track1, track2, artist2 = map(aliased, [Artist, Track, Track, Artist])
