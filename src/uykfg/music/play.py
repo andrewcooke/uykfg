@@ -22,7 +22,9 @@ def neighbour_track(session, track, max_links):
     neighbours = collect_dst(session, track, neighbours, max_links)
     neighbours = collect_album(session, track, neighbours, max_links)
     neighbours = collect_self(track, neighbours, max_links)
-    return choice(expand_neighbours(neighbours, track))
+    track = choice(expand_neighbours(neighbours, track))
+    debug('neighbour: %s / %s' % (track.name, track.artist.name))
+    return track
 
 def collect_src(session, track, neighbours, max_links):
     return accumulate(neighbours, max_links, 'src',
