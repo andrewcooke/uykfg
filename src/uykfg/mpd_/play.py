@@ -18,7 +18,7 @@ def play_links(session, config):
             last = almost_empty(mpd)
             if last: queue(mpd, config.mp3_path,
                            neighbour_track(session,
-                                find_track(session, config.mp3_path, last['file']),
+                                find_track(session, config.mp3_path, last),
                                 config.max_links))
         sleep(1)
 
@@ -35,8 +35,8 @@ def queue(mpd, mp3_path, track):
     if path.startswith('/'): path = path[1:]
     mpd.findadd('file', path)
 
-def find_track(session, mp3_path, path):
-    path, file = split(path)
+def find_track(session, mp3_path, track):
+    path, file = split(track['file'])
     path = join(mp3_path, path)
     return session.query(Track).join(Album).filter(Album.path == path, Track.file == file).one()
 
