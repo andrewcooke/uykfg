@@ -33,7 +33,7 @@ class Config:
                  max_links=4, mp3_path=expanduser('~/music'), api_key=None):
         self.log_level = log_level
         self.db_url = db_url
-        self.max_links = max_links
+        self.max_links = int(max_links)
         self.mp3_path = mp3_path
         self.api_key = api_key
         basicConfig(level=log_level.upper())
