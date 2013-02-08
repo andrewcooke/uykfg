@@ -1,6 +1,5 @@
 
-from logging import debug
-from json import loads
+from logging import debug, warning
 from urllib.error import URLError
 from collections import Counter
 from sqlalchemy.orm.exc import NoResultFound
@@ -84,6 +83,14 @@ class Finder:
                     results=1, sort='familiarity-desc'),
             'response', 'artists', 0)
         return artist['id'], artist['name']
+
+    def delete_artist(self, session, artist):
+        try:
+            nest_artist = session.query(NestArtist)\
+                .filter(NestArtist.artists.any(id=artist.id)).one()
+            nest_artist.artists.remove(artist)
+        except NoResultFound:
+            warning('no nest artist for %s' % artist.name)
 
 
 

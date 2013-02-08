@@ -34,7 +34,7 @@ def scan_all(session, finder, config):
         scan_album(session, finder, remaining, path, files)
     cull_albums(session, remaining)
     for path in remaining: delete_album(session, remaining[path])
-    cull_artists(session)
+    cull_artists(session, finder)
     session.commit()
     debug('done!')
 
@@ -175,9 +175,10 @@ def add_album_tracks(session, finder, album, data):
     except FinderError:
         warning('no artist found for %s' % album.path)
 
-def cull_artists(session):
+def cull_artists(session, finder):
     debug('removing unused artists')
     for artist in session.query(Artist).filter(Artist.tracks == None).all():
+        finder.delete_artist(session, artist)
         session.delete(artist)
 
 def cull_albums(session, remaining):
