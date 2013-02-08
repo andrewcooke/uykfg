@@ -61,7 +61,7 @@ def collect_self(track, neighbours, max_links):
     return neighbours
 
 def expand_neighbours(neighbours, prev):
-    debug('selecting from %s' % ', '.join(artist.name for artist in neighbours))
+    debug('selecting from: %s' % '; '.join(artist.name for artist in neighbours))
     return [track
             for artist in neighbours
             for track in artist.tracks
