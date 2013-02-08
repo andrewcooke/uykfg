@@ -55,5 +55,5 @@ def find_track(session, mp3_path, path):
     return session.query(Track).join(Album).filter(Album.path == path, Track.file == file).one()
 
 def queue_random(mpd, mp3_path, session):
-    track = session.query(Track, limit=1).order_by(random).one()
+    track = session.query(Track).order_by(random).limit(1).one()
     add_to_playlist(mpd, mp3_path, track)
