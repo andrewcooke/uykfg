@@ -19,7 +19,7 @@ def play_links(session, config):
         else:
             last = almost_empty(mpd)
             if last: queue_next(mpd, session, config.mp3_path, last)
-        sleep(10)
+        sleep(1)
 
 def empty(mpd):
     return not bool(mpd.playlistinfo(0))
@@ -36,8 +36,22 @@ def queue_next(mpd, session, mp3_path, last):
     except IndexError: queue_random(mpd, mp3_path, session)
 
 def random_neighbour(session, track):
+    try: return random_far_neighbour(session, track)
+    except IndexError: return random_any_neighbour(session, track)
+
+def random_any_neighbour(session, track):
     neighbours = [src
                   for link in session.query(Link).filter(Link.dst == track.artist).all()
+                  for src in link.src.tracks]
+    debug('choice: %d %s' % (len(neighbours),
+                             '; '.join('%s: %s' % (nbr.artist.name, nbr.name)
+                                       for nbr in neighbours)))
+    return choice(neighbours)
+
+def random_far_neighbour(session, track):
+    neighbours = [src
+                  for link in session.query(Link).filter(Link.dst == track.artist,
+                                                         Link.src != track.artist).all()
                   for src in link.src.tracks]
     debug('choice: %d %s' % (len(neighbours),
                              '; '.join('%s: %s' % (nbr.artist.name, nbr.name)
