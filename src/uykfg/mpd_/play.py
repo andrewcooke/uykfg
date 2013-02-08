@@ -33,7 +33,8 @@ def almost_empty(mpd):
 def queue_next(mpd, session, mp3_path, last):
     debug('next: %s' % last)
     track = find_track(session, mp3_path, last['file'])
-    add_to_playlist(mpd, mp3_path, random_neighbour(session, track))
+    try: add_to_playlist(mpd, mp3_path, random_neighbour(session, track))
+    except IndexError: queue_random(mpd, mp3_path, session)
 
 def random_neighbour(session, track):
     neighbours = [src
