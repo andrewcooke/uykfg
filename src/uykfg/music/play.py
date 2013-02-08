@@ -33,10 +33,10 @@ def collect_dst(session, track, neighbours, max_links):
              Link.dst != track.artist).order_by(random()).all()))
 
 def accumulate(neighbours, max_links, artists):
-    if len(neighbours) >= max_links: return
+    if len(neighbours) >= max_links: return neighbours
     for artist in artists:
         neighbours.append(artist)
-        if len(neighbours) >= max_links: return
+        if len(neighbours) >= max_links: return neighbours
     return neighbours
 
 def collect_album(session, track, neighbours, max_links):
