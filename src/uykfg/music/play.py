@@ -51,7 +51,8 @@ def collect_album(session, track, neighbours, max_links):
     artist1, track1, track2, artist2 = map(aliased, [Artist, Track, Track, Artist])
     return accumulate(neighbours, max_links, 'album',
         session.query(artist1).join(track1, Album, track2, artist2)\
-                .filter(artist2.id == track.id, artist1.id != track.id)\
+                .filter(artist2.id == track.artist.id,
+                        artist1.id != track.artist.id)\
                 .group_by(artist1.id).order_by(random()).all())
 
 def collect_self(track, neighbours, max_links):
