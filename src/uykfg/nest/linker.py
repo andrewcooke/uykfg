@@ -11,6 +11,8 @@ from uykfg.support.cache import Cache
 from uykfg.support.sequences import unpack
 
 
+EXCLUDE = set(['Various', 'Various Artists'])
+
 class Linker:
 
     def __init__(self, config, session):
@@ -40,7 +42,7 @@ class Linker:
                 nest_artist = session.query(NestArtist)\
                         .filter(NestArtist.id == artist['id']).one()
                 for dst in nest_artist.artists:
-                    if links < self._max_links and\
+                    if links < self._max_links and dst.name not in EXCLUDE and \
                             not session.query(Link).filter(Link.src == src, Link.dst == dst).count():
                         debug('linking %s to %s' % (src.name, dst.name))
                         session.add(Link(src=src, dst=dst))
