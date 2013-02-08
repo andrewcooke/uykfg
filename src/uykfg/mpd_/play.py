@@ -29,13 +29,14 @@ def almost_empty(mpd):
 def queue_next(mpd, session, mp3_path, last):
     debug('next: %s' % last)
     track = find_track(session, mp3_path, last['file'])
-    add_to_playlist(mpd, random_neighbour(track))
+    add_to_playlist(mpd, mp3_path, random_neighbour(track))
 
 def random_neighbour(track):
     return track
 
-def add_to_playlist(mpd, track):
-    mpd.findadd('file', join(track.album.path, track.file))
+def add_to_playlist(mpd, mp3_path, track):
+    path = join(track.album.path, track.file)[len(mp3_path):]
+    mpd.findadd('file', path)
 
 def find_track(session, mp3_path, path):
     path, file = split(path)
