@@ -18,8 +18,8 @@ This now works.  It contains three scripts:
   the playlist is empty.
 
 However, the number of calls made to EchoNest is huge when first run (the
-scan and link scripts) (even though the calls are aggressively cached - it
-takes days to get the data for my music collectin).  So this is not a good
+scan and link scripts; even though the calls are aggressively cached it
+takes days to get the data for my music collection).  So this is not a good
 use of EchoNest and won't scale well.
 
 If, despite that, you want to use this code, please email me at
