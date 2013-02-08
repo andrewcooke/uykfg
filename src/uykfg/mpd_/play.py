@@ -38,7 +38,7 @@ def random_neighbour(session, track):
     neighbours = [src
                   for link in session.query(Link).filter(Link.dst == track.artist).all()
                   for src in link.src.tracks]
-    debug('choice: %d %s' % (len(neighbours), neighbours))
+    debug('choice: %d %s' % (len(neighbours), [nbr.name for nbr in neighbours]))
     return choice(neighbours)
 
 def add_to_playlist(mpd, mp3_path, track):
