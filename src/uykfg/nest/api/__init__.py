@@ -137,8 +137,10 @@ class RateLimitingApi:
                   (self._period, local_rate, external_rate, total_rate,
                    self._target[0] * self._rate_limit, self._target[1] * self._rate_limit))
             if total_rate > self._target[1] * self._rate_limit:
+                debug('slower %f' % self._slower)
                 interval *= self._slower
             elif total_rate < self._target[0] * self._rate_limit:
+                debug('faster %f' % self._faster)
                 interval *= self._faster
             clipped_interval = min(self._period / 2, max(self._period / self._rate_limit, interval))
             debug('interval: %f/%f' % (interval, clipped_interval))
