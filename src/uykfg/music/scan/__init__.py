@@ -121,7 +121,7 @@ def add_tracks(session, finder, album, data):
         try: yield add_artist(session, finder, album, tag, file, modified)
         except FinderError: retry2.append((tag, file, modified))
     # if we failed for the entire album, and have a single artist, try combining tracks
-    if len(retry2) == len(data) and len(data) > 1 and\
+    if len(retry2) == len(data) and len(data) > 1 and \
        len(set(d[0].artist for d in data)) == 1:
         for track in add_album_tracks(session, finder, album, retry2):
             yield track

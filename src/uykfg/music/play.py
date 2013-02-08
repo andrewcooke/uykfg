@@ -42,7 +42,7 @@ def collect_dst(session, track, neighbours, max_links):
 def accumulate(neighbours, max_links, label, artists):
     if len(neighbours) >= max_links: return neighbours
     for artist in artists:
-        neighbours.append(artist)
+        if artist not in neighbours: neighbours.append(artist)
         if len(neighbours) >= max_links: break
     debug('%s: %d' % (label, len(neighbours)))
     return neighbours
