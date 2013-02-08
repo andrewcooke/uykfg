@@ -87,6 +87,7 @@ class RateLimitingApi:
         self._estimator = RateEstimator(period)
         self._no_call_before = 0
         self._used = 0
+        self._interval = None
 
     def _build_url(self, _api, _method, **kargs):
         '''
@@ -127,11 +128,12 @@ class RateLimitingApi:
         the global rate.  Then "blindly" adjust our rate depending on whether
         the total rate is above or below the target band.
         '''
-        now, local_rate, interval, external_rate = self._estimator.update(self._used)
+        now, local_rate, measured_interval, external_rate = self._estimator.update(self._used)
         if self._used >= self._rate_limit:
             warning('hit global hard limit; back-off and restart')
             self._no_call_before = now + self._period
-        elif interval:
+        elif self._interval or measured_interval:
+            interval = self._interval or measured_interval
             total_rate = local_rate + external_rate
             debug('rates (per %ds)  local: %.1f; external: %.1f; total: %.1f; target: %.1f-%.1f' %
                   (self._period, local_rate, external_rate, total_rate,
@@ -145,6 +147,7 @@ class RateLimitingApi:
             clipped_interval = min(self._period / 2, max(self._period / self._rate_limit, interval))
             debug('interval: %f/%f' % (interval, clipped_interval))
             self._no_call_before = now + clipped_interval
+            self._interval = clipped_interval
         else:
             debug('too little information to estimate rates')
             self._no_call_before = now + (self._period / self._rate_limit)
