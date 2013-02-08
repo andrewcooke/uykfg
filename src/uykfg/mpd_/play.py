@@ -5,6 +5,7 @@ from time import sleep
 
 from mpd import MPDClient
 from random import choice
+from sqlalchemy.sql.functions import random
 
 from uykfg.music.db.catalogue import Album, Track
 from uykfg.music.db.network import Link
@@ -15,7 +16,7 @@ def play_links(session, config):
     mpd.connect("localhost", 6600)
     while True:
         if empty(mpd):
-            queue_random(mpd, session)
+            queue_random(mpd, config.mp3_path, session)
         else:
             last = almost_empty(mpd)
             if last: queue_next(mpd, session, config.mp3_path, last)
@@ -53,5 +54,6 @@ def find_track(session, mp3_path, path):
     path = join(mp3_path, path)
     return session.query(Track).join(Album).filter(Album.path == path, Track.file == file).one()
 
-def queue_random(mpd, session):
-    debug('random')
+def queue_random(mpd, mp3_path, session):
+    track = session.query(Track, limit=1).order_by(random).one()
+    add_to_playlist(mpd, mp3_path, track)
