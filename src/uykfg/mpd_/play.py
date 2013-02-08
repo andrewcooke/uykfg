@@ -1,14 +1,10 @@
 
-from logging import debug
 from os.path import split, join
 from time import sleep
 
 from mpd import MPDClient
-from random import choice
 
-from uykfg.music.db.catalogue import Album, Track
-from uykfg.music.db.network import Link
-from uykfg.music.play import random_track
+from uykfg.music.play import random_track, neighbour_track
 
 
 def play_links(session, config):
