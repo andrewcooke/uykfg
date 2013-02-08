@@ -40,23 +40,21 @@ def random_neighbour(session, track):
     except IndexError: return random_any_neighbour(session, track)
 
 def random_any_neighbour(session, track):
+    return random_from_select(session.query(Link).filter(Link.dst == track.artist).all())
+
+def random_far_neighbour(session, track):
+    return random_from_select(session.query(Link).filter(Link.dst == track.artist,
+                                                         Link.src != track.artist).all())
+
+def random_from_select(select):
     neighbours = [src
-                  for link in session.query(Link).filter(Link.dst == track.artist).all()
+                  for link in select
                   for src in link.src.tracks]
     debug('choice: %d %s' % (len(neighbours),
                              '; '.join('%s: %s' % (nbr.artist.name, nbr.name)
                                        for nbr in neighbours)))
     return choice(neighbours)
 
-def random_far_neighbour(session, track):
-    neighbours = [src
-                  for link in session.query(Link).filter(Link.dst == track.artist,
-                                                         Link.src != track.artist).all()
-                  for src in link.src.tracks]
-    debug('choice: %d %s' % (len(neighbours),
-                             '; '.join('%s: %s' % (nbr.artist.name, nbr.name)
-                                       for nbr in neighbours)))
-    return choice(neighbours)
 
 def add_to_playlist(mpd, mp3_path, track):
     path = join(track.album.path, track.file)[len(mp3_path):]
