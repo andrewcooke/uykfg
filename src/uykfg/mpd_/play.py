@@ -36,7 +36,7 @@ def queue_next(mpd, session, mp3_path, last):
 
 def random_neighbour(session, track):
     neighbours = [nbr
-                  for link in session.query(Link).filter(dst=track).all()
+                  for link in session.query(Link).filter(Link.dst == track.artist).all()
                   for src in link.srcs
                   for nbr in src.tracks]
     return choice(neighbours)
