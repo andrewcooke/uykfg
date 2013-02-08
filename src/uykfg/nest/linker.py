@@ -1,6 +1,6 @@
 
 from logging import debug
-from sqlalchemy.exc import IntegrityError
+from urllib.error import URLError
 from sqlalchemy.orm.exc import NoResultFound
 
 from uykfg.music.db.catalogue import Artist
@@ -26,7 +26,7 @@ class Linker:
                 results *= 2
         except NoResultFound:
             debug('no nest artist for %s' % src.name)
-        except (AttributeError, IndexError) as e:
+        except (AttributeError, IndexError, URLError) as e:
             debug(e)
 
     def _link_delta(self, session, src, start, results, found, target, id):

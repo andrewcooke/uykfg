@@ -5,6 +5,13 @@ from urllib.parse import urlencode, quote, urlunparse
 from urllib.request import urlopen
 
 
+'''
+This is a complete mess.  It would be better to replace it with something
+simpler.  For example, pause for 60/(rate-used)^n seconds, where n is
+some fudge factor.
+'''
+
+
 class RateEstimator:
     '''
     Manage a queue of timestamps made over `period` seconds.
