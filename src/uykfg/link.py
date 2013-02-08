@@ -9,7 +9,7 @@ def link():
     config = Config.default()
     session = startup(config)
     linker = Linker(config, session)
-    link_all(session, linker, config)
+    link_all(session, linker)
 
 
 if __name__ == '__main__':
