@@ -5,7 +5,6 @@ from time import sleep
 
 from mpd import MPDClient
 from random import choice
-from sqlalchemy.sql.functions import random
 
 from uykfg.music.db.catalogue import Album, Track
 from uykfg.music.db.network import Link

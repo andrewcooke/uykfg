@@ -140,8 +140,9 @@ class RateLimitingApi:
                 interval *= self._slower
             elif total_rate < self._target[0] * self._rate_limit:
                 interval *= self._faster
-            interval = min(self._period / 2, max(self._period / self._rate_limit, interval))
-            self._no_call_before = now + interval
+            clipped_interval = min(self._period / 2, max(self._period / self._rate_limit, interval))
+            debug('interval: %f/%f' % (interval, clipped_interval))
+            self._no_call_before = now + clipped_interval
         else:
             debug('too little information to estimate rates')
             self._no_call_before = now + (self._period / self._rate_limit)
