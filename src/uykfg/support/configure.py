@@ -16,7 +16,7 @@ from os.path import expanduser, join, exists, abspath
 
 
 UYKFG_DIR, HOME, UYKFGRC, UYKFGDB = 'UYKFFG_DIR', '~', '.uykfgrc', '.uykfgdb'
-DATABASE, URL = 'database', 'url'
+DATABASE, URL, MAX_LINKS = 'database', 'url', 'max_links'
 MP3, PATH = 'mp3', 'path'
 LOG, LEVEL, DEBUG = 'log', 'level', 'debug'
 ECHONEST, API_KEY = 'echonest', 'api_key'
@@ -28,13 +28,12 @@ class ConfigException(Exception):
 
 class Config:
 
-    def __init__(self, log_level='debug', web_port=9001, web_address='localhost',
+    def __init__(self, log_level='debug',
                  db_url='sqlite:///%s' % expanduser(join(environ.get(UYKFG_DIR, HOME), UYKFGDB)),
-                 mp3_path=expanduser('~/music'), api_key=None):
+                 max_links=4, mp3_path=expanduser('~/music'), api_key=None):
         self.log_level = log_level
-        self.web_port = web_port
-        self.web_address = web_address
         self.db_url = db_url
+        self.max_links = max_links
         self.mp3_path = mp3_path
         self.api_key = api_key
         basicConfig(level=log_level.upper())
@@ -55,6 +54,7 @@ class Config:
             parser.read_file(fp)
             return Config(log_level=parser.get(LOG, LEVEL),
                 db_url = parser.get(DATABASE, URL),
+                max_links = parser.get(DATABASE, MAX_LINKS),
                 mp3_path = abspath(expanduser(parser.get(MP3, PATH))),
                 api_key = parser.get(ECHONEST, API_KEY))
         except Exception as e:
@@ -75,6 +75,7 @@ class Config:
         parser.set(LOG, LEVEL, self.log_level)
         parser.add_section(DATABASE)
         parser.set(DATABASE, URL, self.db_url)
+        parser.set(DATABASE, MAX_LINKS, self.max_links)
         parser.add_section(MP3)
         parser.set(MP3, PATH, self.mp3_path)
         parser.add_section(ECHONEST)
