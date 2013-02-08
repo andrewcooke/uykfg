@@ -16,12 +16,14 @@ from functools import partial
 from logging import debug, warning
 from os import walk
 from os.path import join
+from sqlalchemy import or_
 
 from sqlalchemy.orm.exc import NoResultFound
 from stagger.errors import NoTagError
 from stagger.tags import read_tag
 
 from uykfg.music.db.catalogue import Album, Track, Artist
+from uykfg.music.db.network import Link
 from uykfg.nest.finder import FinderError
 from uykfg.support.io import getimtime
 from uykfg.support.sequences import seq_and, lfilter
@@ -178,6 +180,7 @@ def add_album_tracks(session, finder, album, data):
 def cull_artists(session, finder):
     debug('removing unused artists')
     for artist in session.query(Artist).filter(Artist.tracks == None).all():
+        session.query(Link).filter(or_(Link.src == artist, Link.dst == artist)).delete()
         finder.delete_artist(session, artist)
         session.delete(artist)
 
