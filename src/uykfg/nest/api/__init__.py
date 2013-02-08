@@ -26,8 +26,7 @@ class RateEstimator:
         previous = self._previous_time if self._previous_time else now
         local_count, local_rate, interval = self._local(now)
         external_rate = self._external(now, used, local_count)
-#        return now, local_rate * (1 + self._bias), interval, external_rate
-        return previous, local_rate * (1 + self._bias), interval, external_rate
+        return now, previous, local_rate * (1 + self._bias), interval, external_rate
 
     def _external(self, now, used, local_count):
         '''
@@ -82,6 +81,7 @@ class RateLimitingApi:
 
         self._period = float(period)
         self._rate_limit = rate_limit
+        self._interval = self._period / self._rate_limit
         self._target = target # target rate is `target * rate_limit`
         self._slower = slower # the scaling factor for increasing pause
         self._faster = faster # the scaling factor for decreasing pause
@@ -129,7 +129,7 @@ class RateLimitingApi:
         the global rate.  Then "blindly" adjust our rate depending on whether
         the total rate is above or below the target band.
         '''
-        now, local_rate, interval, external_rate = self._estimator.update(self._used)
+        now, previous, local_rate, interval, external_rate = self._estimator.update(self._used)
         if self._used >= self._rate_limit:
             warning('hit global hard limit; back-off and restart')
             self._no_call_before = now + self._period
@@ -140,13 +140,13 @@ class RateLimitingApi:
                    self._target[0] * self._rate_limit, self._target[1] * self._rate_limit))
             if total_rate > self._target[1] * self._rate_limit:
                 debug('slower %f' % self._slower)
-                interval *= self._slower
+                self._interval *= self._slower
             elif total_rate < self._target[0] * self._rate_limit:
                 debug('faster %f' % self._faster)
-                interval *= self._faster
-            clipped_interval = min(self._period / 2, max(self._period / self._rate_limit, interval))
-            debug('interval: %f/%f' % (interval, clipped_interval))
-            self._no_call_before = now + clipped_interval
+                self._interval *= self._faster
+            clipped_interval = min(self._period / 2, max(self._period / self._rate_limit, self._interval))
+            debug('interval: %f/%f' % (self._interval, clipped_interval))
+            self._no_call_before = previous + clipped_interval
         else:
             debug('too little information to estimate rates')
             self._no_call_before = now + (self._period / self._rate_limit)
