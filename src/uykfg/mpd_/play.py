@@ -4,7 +4,10 @@ from os.path import split, join
 from time import sleep
 
 from mpd import MPDClient
+from random import choice
+
 from uykfg.music.db.catalogue import Album, Track
+from uykfg.music.db.network import Link
 
 
 def play_links(session, config):
@@ -31,8 +34,12 @@ def queue_next(mpd, session, mp3_path, last):
     track = find_track(session, mp3_path, last['file'])
     add_to_playlist(mpd, mp3_path, random_neighbour(track))
 
-def random_neighbour(track):
-    return track
+def random_neighbour(session, track):
+    neighbours = [nbr
+                  for link in session.query(Link).filter(dst=track).all()
+                  for src in link.srcs
+                  for nbr in src.tracks]
+    return choice(neighbours)
 
 def add_to_playlist(mpd, mp3_path, track):
     path = join(track.album.path, track.file)[len(mp3_path):]
