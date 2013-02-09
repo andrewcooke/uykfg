@@ -12,7 +12,7 @@ from sqlalchemy.orm.exc import NoResultFound
 from uykfg.support.cache.db import CacheOwner, CacheData
 
 
-MONTH = 3 * 24 * 60 * 60
+MONTH = 30 * 24 * 60 * 60
 HOUR = 60 * 60
 
 
