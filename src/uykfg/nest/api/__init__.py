@@ -42,7 +42,6 @@ class RateLimitingApi:
         while True:
             delta = self._until - time()
             if delta <= 0: return
-            print(delta, file=stderr)
             debug('sleeping for %fs' % delta)
             sleep(delta)
 
