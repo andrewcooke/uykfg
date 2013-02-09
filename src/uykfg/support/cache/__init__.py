@@ -16,6 +16,13 @@ MONTH = 30 * 24 * 60 * 60
 HOUR = 60 * 60
 
 
+class Fallback(Exception):
+
+    def __init__(self, cause):
+        super(cause)
+        self.cause = cause
+
+
 class Cache:
 
     def __init__(self, function, session, name=None,
@@ -41,43 +48,61 @@ class Cache:
         self.misses = 0
 
     def __call__(self, *args, **kargs):
-        self._expire()
         key = self._encode_key(*args, **kargs)
         cached_value = self._session.query(CacheData).\
             filter(CacheData.owner == self._owner, CacheData.key == key).first()
-        if cached_value:
+        if cached_value and cached_value.expires > time():
             debug('cache hit for %s' % repr((args, kargs)))
-            value = self._decode_value(cached_value.value)
-            exception = cached_value.exception
-            cached_value.used = time()
+            value, exception = self._use(cached_value)
             self.hits += 1
         else:
-            debug('cache miss for %s' % repr((args, kargs)))
+            if cached_value: debug('cache expired for %s' % repr((args, kargs)))
+            else: debug('cache miss for %s' % repr((args, kargs)))
             exception = False
             try:
                 value = self._function(*args, **kargs)
+                cached_value = self._discard(cached_value)
+            except Fallback as f:
+                if cached_value:
+                    value, exception = self._use(cached_value)
+                else:
+                    value = f.cause
+                    exception = True
             except Exception as e:
                 value = e
                 exception = True
-            debug('caching: %r' % value)
-            try:
-                encoded_value = self._encode_value(value)
-                size = len(key) + len(encoded_value)
-                if exception: expires = int(time() + self._owner.exception_lifetime)
-                else: expires = int(time() + self._owner.value_lifetime * (0.5 + random()))
-                self._session.add(CacheData(owner=self._owner, key=key,
-                    value=encoded_value, size=size, exception=exception,
-                    expires=expires))
-                self.misses += 1
-                self._owner.total_size += size
-                self._reduce()
-            except Exception as e:
-                warning('could not cache %r: %s' % (value, e))
-                if exception: raise value
-                else: return value
+                cached_value = self._discard(cached_value)
+            if not cached_value:
+                self._cache(key, value, exception)
         self._session.commit()
         if exception: raise value
         else: return value
+
+    def _cache(self, key, value, exception):
+        debug('caching: %r' % value)
+        try:
+            encoded_value = self._encode_value(value)
+            size = len(key) + len(encoded_value)
+            if exception: expires = int(time() + self._owner.exception_lifetime)
+            else: expires = int(time() + self._owner.value_lifetime * (0.5 + random()))
+            self._session.add(CacheData(owner=self._owner, key=key,
+                value=encoded_value, size=size, exception=exception,
+                expires=expires))
+            self.misses += 1
+            self._owner.total_size += size
+            self._reduce()
+        except Exception as e:
+            warning('could not cache %r: %s' % (value, e))
+
+    def _use(self, cached_value):
+        value = self._decode_value(cached_value.value)
+        exception = cached_value.exception
+        cached_value.used = time()
+        return value, exception
+
+    def _discard(self, cached_value):
+        if cached_value: self._session.delete(cached_value)
+        return None
 
     def _encode_key(self, *args, **kargs):
         hash = sha1()
@@ -91,18 +116,6 @@ class Cache:
 
     def _decode_value(self, value):
         return loads(decompress(value))
-
-    def _expire(self):
-        query = self._session.query(CacheData)\
-            .filter(CacheData.expires < time(), CacheData.owner == self._owner)
-        count = query.count()
-        if count:
-            debug('deleting %d cache entries' % count)
-            query.delete()
-            size = self._session.query(func.sum(CacheData.size))\
-                .filter(CacheData.owner == self._owner).scalar()
-            if not size: size = 0
-            self._owner.total_size = size
 
     def _reduce(self):
         while self._owner.total_size > self._owner.max_size:

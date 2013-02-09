@@ -3,6 +3,7 @@ from logging import debug, warning
 from time import time, sleep
 from urllib.parse import urlencode, quote, urlunparse
 from urllib.request import urlopen
+from uykfg.support.cache import Fallback
 
 
 '''
@@ -168,5 +169,7 @@ class RateLimitingApi:
         self._limit_rate()
         try:
             return self._do_request(url)
+        except Exception as e:
+            raise Fallback(e)
         finally:
             self._update_rate_estimate()
