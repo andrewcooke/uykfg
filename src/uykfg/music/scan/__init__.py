@@ -61,9 +61,10 @@ def scan_album(session, finder, remaining, path, files):
     add_album(session, finder, path, files)
 
 def is_unchanged_album(album, files):
-    if len(files) != len(album.tracks): return False
-    tracks = dict((track.file, track) for track in album.tracks)
-    return seq_and(map(partial(is_unchanged_track, album.path, tracks), files))
+    return False # rely on cache
+#    if len(files) != len(album.tracks): return False
+#    tracks = dict((track.file, track) for track in album.tracks)
+#    return seq_and(map(partial(is_unchanged_track, album.path, tracks), files))
 
 def is_unchanged_track(path, tracks, file):
     filepath = join(path, file)
