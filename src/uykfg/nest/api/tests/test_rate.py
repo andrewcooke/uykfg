@@ -2,6 +2,7 @@
 from http.server import HTTPServer, BaseHTTPRequestHandler
 from logging import debug
 from re import compile
+from sys import stderr
 from threading import Thread, Lock
 from time import time, sleep
 from unittest import TestCase
@@ -25,28 +26,27 @@ def make_handler():
 
     class Handler(BaseHTTPRequestHandler):
 
-        queue = []
-        record = []
+        limit = 40
+        start = 0
+        count = 0
         lock = Lock()
 
         def do_GET(self):
             with self.__class__.lock:
+                if not self.__class__.start: self.__class__.start = time()
                 now = time()
-                self.__class__.queue.append(now)
-                while self.__class__.queue[0] < now - 60: self.__class__.queue.pop(0)
-                count = len(self.__class__.queue)
-                self.__class__.record.append((now, int(INDEX.search(self.path).groups()[0]), count))
+                while now - self.__class__.start > 60:
+                    self.__class__.count = 0
+                    self.__class__.start += 60
+                self.__class__.count += 1
+                print('%d/%d' % (self.__class__.count, self.__class__.limit), file=stderr)
             self.send_response(200)
-            self.send_header('X-RateLimit-Remaining', '%d' % (120-count))
-            self.send_header('X-RateLimit-Used', '%d' % count)
-            self.send_header('X-RateLimit-Limit', '%d' % 120)
+            self.send_header('X-RateLimit-Remaining', '%d' % (self.__class__.limit - self.__class__.count))
+            self.send_header('X-RateLimit-Used', '%d' % self.__class__.count)
+            self.send_header('X-RateLimit-Limit', '%d' % self.__class__.limit)
             self.send_header('Content-type', 'text/html')
             self.end_headers()
             self.wfile.write(b'response')
-
-        @classmethod
-        def dump(cls):
-            for (time, index, count) in cls.record: print('%f %d %d' % (time, index, count))
 
     return Handler
 
@@ -76,21 +76,20 @@ class Client:
 
 class RateTest(TestCase):
 
-    def test_single(self):
-        Config()
-        address = ('localhost', 8765)
-        handler = make_handler()
-        server = HTTPServer(address, handler)
-        try:
-            Thread(target=lambda: server.serve_forever(0.001)).start()
-            start = time()
-            api = RateLimitingApi('KEY', netloc='%s:%d' % address)
-            for i in range(10): api('foo', 'bar', index=0)
-            duration = time() - start
-            handler.dump()
-            assert 5 <= duration < 7, duration
-        finally:
-            server.shutdown()
+#    def test_single(self):
+#        Config()
+#        address = ('localhost', 8765)
+#        handler = make_handler()
+#        server = HTTPServer(address, handler)
+#        try:
+#            Thread(target=lambda: server.serve_forever(0.001)).start()
+#            start = time()
+#            api = RateLimitingApi('KEY', netloc='%s:%d' % address)
+#            for i in range(80): api('foo', 'bar', index=0)
+#            duration = time() - start
+#            assert 120 <= duration < 130, duration
+#        finally:
+#            server.shutdown()
 
     def do_multiple(self, address, n_clients, n_requests):
         Config()
@@ -108,8 +107,7 @@ class RateTest(TestCase):
                 with lock:
                     if not counter[0]: break
             duration = time() - start
-            handler.dump()
-            expected = 60 * n_requests / (120.0 * 0.9)
+            expected = 60 * n_requests / (40.0 * 0.9)
             # check duration within 20% of expected
             assert expected * 0.8 < duration < expected * 1.2, (duration, expected)
             count = clients[0].count
@@ -118,8 +116,8 @@ class RateTest(TestCase):
         finally:
             server.shutdown()
 
-#    def test_pair(self):
-#        self.do_multiple(('localhost', 8766), 2, 500)
+    def test_pair(self):
+        self.do_multiple(('localhost', 8766), 2, 500)
 
 #    def test_many(self):
 #        self.do_multiple(('localhost', 8767), 4, 2000)

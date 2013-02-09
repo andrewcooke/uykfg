@@ -1,73 +1,10 @@
 
 from logging import debug, warning
+from sys import stderr
 from time import time, sleep
 from urllib.parse import urlencode, quote, urlunparse
 from urllib.request import urlopen
 from uykfg.support.cache import Fallback
-
-
-'''
-This is a complete mess.  It would be better to replace it with something
-simpler.  For example, pause for 60/(rate-used)^n seconds, where n is
-some fudge factor.
-'''
-
-
-class RateEstimator:
-    '''
-    Manage a queue of timestamps made over `period` seconds.
-    '''
-
-    def __init__(self, period=60, bias=0.1):
-        self._period = period
-        self._bias = bias
-        self._queue = []
-        self._previous_time = None
-        self._previous_used = None
-
-    def update(self, used):
-        '''
-        Call when a new request is made.  The local rate is biased slightly
-        to place downwards pressure on the greediest clients.
-        '''
-        now = time()
-        previous = self._previous_time if self._previous_time else now
-        local_count, local_rate, interval = self._local(now)
-        external_rate = self._external(now, used, local_count)
-        return now, previous, local_rate * (1 + self._bias), interval, external_rate
-
-    def _external(self, now, used, local_count):
-        '''
-        Take the larger of two estimates of the external rate.  One from the
-        total number used in the last minute (corrected for the number of
-        local requests); the other from the change in the number used since
-        the last request.
-        '''
-        if self._previous_time:
-            rate = self._period * (used - self._previous_used - 1) / (now - self._previous_time)
-            rate = max(rate, used - local_count)
-        else:
-            rate = used - local_count
-        self._previous_time = now
-        self._previous_used = used
-        return rate
-
-    def _local(self, now):
-        '''
-        Take the larger of two estimates for the local rate.  One from the
-        queue size (number of requests in last minute); the other from the
-        time gap between the last two connections.
-        '''
-        self._queue.append(now)
-        while self._queue[0] < now - self._period: self._queue.pop(0)
-        count = len(self._queue)
-        if count > 1:
-            rate = self._period * (count - 1) / (now - self._queue[0])
-            interval = self._queue[-1] - self._queue[-2]
-            rate = max(rate, self._period / interval)
-        else:
-            rate, interval = 0, 0
-        return count, rate, interval
 
 
 class RateLimitingApi:
@@ -79,24 +16,14 @@ class RateLimitingApi:
     '''
 
     def __init__(self, api_key, scheme='http', netloc='developer.echonest.com',
-                 prefix=['api', 'v4'],
-                 period=60, rate_limit=40, target=(0.8, 0.9), slower=1.1, faster=0.9):
+                 prefix=['api', 'v4'], greedy=1.3):
 
         self._api_key = api_key
         self._scheme = scheme
         self._netloc = netloc
         self._prefix = prefix
-
-        self._period = float(period)
-        self._rate_limit = rate_limit
-        self._interval = self._period / self._rate_limit
-        self._target = target # target rate is `target * rate_limit`
-        self._slower = slower # the scaling factor for increasing pause
-        self._faster = faster # the scaling factor for decreasing pause
-
-        self._estimator = RateEstimator(period)
-        self._no_call_before = 0
-        self._used = 0
+        self._greedy = greedy
+        self._until = time()
 
     def _build_url(self, _api, _method, **kargs):
         '''
@@ -111,13 +38,11 @@ class RateLimitingApi:
         debug(url)
         return url
 
-    def _limit_rate(self):
-        '''
-        Respect any pre-calculated rate limit.
-        '''
-        now = time()
-        if now < self._no_call_before:
-            delta = self._no_call_before - now
+    def _wait_until(self):
+        while True:
+            delta = self._until - time()
+            if delta <= 0: return
+            print(delta, file=stderr)
             debug('sleeping for %fs' % delta)
             sleep(delta)
 
@@ -126,38 +51,10 @@ class RateLimitingApi:
         Make the request and pull rate information from the response headers.
         '''
         with urlopen(url) as input:
-            self._rate_limit = int(input.info()['X-RateLimit-Limit'])
-            self._used = int(input.info()['X-RateLimit-Used'])
-            debug('rate limit: %d; used: %d' % (self._rate_limit, self._used))
+            rate_limit = int(input.info()['X-RateLimit-Limit'])
+            used = int(input.info()['X-RateLimit-Used'])
+            self._until = time() + 60 / max(1, (rate_limit - used))**self._greedy
             return input.read()
-
-    def _update_rate_estimate(self):
-        '''
-        Combine the local and external rates to estimate the (upper limit) on
-        the global rate.  Then "blindly" adjust our rate depending on whether
-        the total rate is above or below the target band.
-        '''
-        now, previous, local_rate, interval, external_rate = self._estimator.update(self._used)
-        if self._used >= self._rate_limit:
-            warning('hit global hard limit; back-off and restart')
-            self._no_call_before = now + self._period
-        elif interval:
-            total_rate = local_rate + external_rate
-            debug('rates (per %ds)  local: %.1f; external: %.1f; total: %.1f; target: %.1f-%.1f' %
-                  (self._period, local_rate, external_rate, total_rate,
-                   self._target[0] * self._rate_limit, self._target[1] * self._rate_limit))
-            if total_rate > self._target[1] * self._rate_limit:
-                debug('slower %f' % self._slower)
-                self._interval *= self._slower
-            elif total_rate < self._target[0] * self._rate_limit:
-                debug('faster %f' % self._faster)
-                self._interval *= self._faster
-            clipped_interval = min(self._period / 2, max(self._period / self._rate_limit, self._interval))
-            debug('interval: %f/%f' % (self._interval, clipped_interval))
-            self._no_call_before = previous + clipped_interval
-        else:
-            debug('too little information to estimate rates')
-            self._no_call_before = now + (self._period / self._rate_limit)
 
     def __call__(self, api, method, **kargs):
         '''
@@ -166,10 +63,8 @@ class RateLimitingApi:
         The response is returned as text.
         '''
         url = self._build_url(api, method, **kargs)
-        self._limit_rate()
+        self._wait_until()
         try:
             return self._do_request(url)
         except Exception as e:
             raise Fallback(e)
-        finally:
-            self._update_rate_estimate()
