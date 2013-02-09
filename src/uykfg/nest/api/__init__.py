@@ -52,7 +52,9 @@ class RateLimitingApi:
         with urlopen(url) as input:
             rate_limit = int(input.info()['X-RateLimit-Limit'])
             used = int(input.info()['X-RateLimit-Used'])
-            self._until = time() + 60 / max(1, (rate_limit - used))**self._greedy
+            delta = 60 / max(1, (rate_limit - used))**self._greedy
+            debug('limit: %d; count: %d; delay: %fs' % (rate_limit, used, delta))
+            self._until = time() + delta
             return input.read()
 
     def __call__(self, api, method, **kargs):
