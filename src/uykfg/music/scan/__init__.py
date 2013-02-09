@@ -10,9 +10,12 @@ artist identification.
 
 Once the root has been scanned any album that was not found is deleted.
 Finally we can discard unused artists.
+
+It's important that artists are not deleted with albums, because the link
+information is associated with artists (and would need to be rebuilt if
+artists were deleted).
 '''
 
-from functools import partial
 from logging import debug, warning
 from os import walk
 from os.path import join

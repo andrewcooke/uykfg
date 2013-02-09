@@ -63,8 +63,7 @@ class Cache:
                 value = self._function(*args, **kargs)
                 cached_value = self._discard(cached_value)
             except Fallback as f:
-                if cached_value:
-                    value, exception = self._use(cached_value)
+                if cached_value: value, exception = self._use(cached_value)
                 else:
                     value = f.cause
                     exception = True
@@ -72,8 +71,7 @@ class Cache:
                 value = e
                 exception = True
                 cached_value = self._discard(cached_value)
-            if not cached_value:
-                self._cache(key, value, exception)
+            if not cached_value: self._cache(key, value, exception)
         self._session.commit()
         if exception: raise value
         else: return value
