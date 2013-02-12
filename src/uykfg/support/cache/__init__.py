@@ -5,7 +5,6 @@ from pickle import dumps, loads
 from random import random
 from time import time
 from zlib import compress, decompress
-from sqlalchemy import func
 
 from sqlalchemy.orm.exc import NoResultFound
 
@@ -21,6 +20,20 @@ class Fallback(Exception):
     def __init__(self, cause):
         super().__init__(cause)
         self.cause = cause
+
+
+def encode_key(*args, **kargs):
+    hash = sha1()
+    for arg in args: hash.update(('%r' % arg).encode('utf8'))
+    for key in sorted(kargs):
+        hash.update(('%r:%r' % (key, kargs[key])).encode('utf8'))
+    return hash.hexdigest()
+
+def encode_value(value):
+    return compress(dumps(value))
+
+def decode_value(value):
+    return loads(decompress(value))
 
 
 class Cache:
@@ -48,7 +61,7 @@ class Cache:
         self.misses = 0
 
     def __call__(self, *args, **kargs):
-        key = self._encode_key(*args, **kargs)
+        key = encode_key(*args, **kargs)
         cached_value = self._session.query(CacheData).\
             filter(CacheData.owner == self._owner, CacheData.key == key).first()
         if cached_value and cached_value.expires > time():
@@ -63,7 +76,8 @@ class Cache:
                 value = self._function(*args, **kargs)
                 cached_value = self._discard(cached_value)
             except Fallback as f:
-                if cached_value: value, exception = self._use(cached_value)
+                if cached_value:
+                    value, exception = self._use(cached_value)
                 else:
                     value = f.cause
                     exception = True
@@ -79,7 +93,7 @@ class Cache:
     def _cache(self, key, value, exception):
         debug('caching: %r' % value)
         try:
-            encoded_value = self._encode_value(value)
+            encoded_value = encode_value(value)
             size = len(key) + len(encoded_value)
             if exception: expires = int(time() + self._owner.exception_lifetime)
             else: expires = int(time() + self._owner.value_lifetime * (0.5 + random()))
@@ -93,7 +107,7 @@ class Cache:
             warning('could not cache %r: %s' % (value, e))
 
     def _use(self, cached_value):
-        value = self._decode_value(cached_value.value)
+        value = decode_value(cached_value.value)
         exception = cached_value.exception
         cached_value.used = time()
         return value, exception
@@ -101,19 +115,6 @@ class Cache:
     def _discard(self, cached_value):
         if cached_value: self._session.delete(cached_value)
         return None
-
-    def _encode_key(self, *args, **kargs):
-        hash = sha1()
-        for arg in args: hash.update(('%r' % arg).encode('utf8'))
-        for key in sorted(kargs):
-            hash.update(('%r:%r' % (key, kargs[key])).encode('utf8'))
-        return hash.hexdigest()
-
-    def _encode_value(self, value):
-        return compress(dumps(value))
-
-    def _decode_value(self, value):
-        return loads(decompress(value))
 
     def _reduce(self):
         while self._owner.total_size > self._owner.max_size:
