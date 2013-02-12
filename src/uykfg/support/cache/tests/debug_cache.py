@@ -10,6 +10,7 @@ def debug():
     for data in session.query(CacheData).filter(CacheData.exception == True).all():
         print('key %r' % data.key)
         print('value %r' % decode_value(data.value))
+    session.query(CacheData).filter(CacheData.exception == True).delete()
 
 
 if __name__ == '__main__':
