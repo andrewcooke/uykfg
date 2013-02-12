@@ -19,7 +19,7 @@ HOUR = 60 * 60
 class Fallback(Exception):
 
     def __init__(self, cause):
-        super(cause)
+        super().__init__(cause)
         self.cause = cause
 
 
