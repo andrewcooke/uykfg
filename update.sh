@@ -9,6 +9,3 @@ if [[ $CNX -gt 0 ]]
 then
     echo "$CNX connections"
 fi
-
-
-
