@@ -5,6 +5,7 @@ from time import sleep
 
 from mpd import MPDClient
 from sqlalchemy.exc import OperationalError
+from sqlalchemy.orm.exc import NoResultFound
 from uykfg.music.db.catalogue import Track, Album
 
 from uykfg.music.play import random_track, neighbour_track
@@ -23,8 +24,9 @@ def play_links(session, config):
                                neighbour_track(session,
                                     find_track(session, config.mp3_path, last),
                                     config.max_links))
-        except OperationalError as e:
+        except (OperationalError, NoResultFound) as e:
             warning(e)
+            sleep(60)
         sleep(1)
 
 def empty(mpd):
