@@ -113,15 +113,20 @@ class Cache:
         return value, exception
 
     def _discard(self, cached_value):
-        if cached_value: self._session.delete(cached_value)
+        if cached_value: self._delete(cached_value)
         return None
 
     def _reduce(self):
+        commit = False
         while self._owner.total_size > self._owner.max_size:
             expired = self._session.query(CacheData)\
                 .filter(CacheData.owner == self._owner)\
                 .order_by(CacheData.used.asc()).first()
             debug('deleting expired value last used at %s (%d)' % (expired.used, expired.size))
-            self._owner.total_size -= expired.size
-            self._session.delete(expired)
-            self._session.commit()
+            self._delete(expired)
+            commit = True
+        if commit: self._session.commit()
+
+    def _delete(self, value):
+        self._owner.total_size -= value.size
+        self._session.delete(value)
