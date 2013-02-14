@@ -11,7 +11,7 @@ Different artists can have the same name.
 from sqlalchemy.orm import relationship
 from sqlalchemy.schema import Column, ForeignKey, Index
 from sqlalchemy.sql.expression import func, select
-from sqlalchemy.types import UnicodeText, Unicode, Integer
+from sqlalchemy.types import UnicodeText, Unicode, Integer, Boolean
 
 from uykfg.support.db import TableBase
 
@@ -33,6 +33,7 @@ class __Common(TableBase):
 class Artist(__Common):
 
     __tablename__ = 'music_artists'
+    new = Column(Boolean, nullable=False, default=True)
 
 
 class Album(__Common):

@@ -15,14 +15,13 @@ It's important that artists are not deleted with albums, because the link
 information is associated with artists (and would need to be rebuilt if
 artists were deleted).
 '''
-from functools import partial
 
+from functools import partial
 from logging import debug, warning, error
 from os import walk
 from os.path import join
-from random import randint
-from sqlalchemy import or_
 
+from sqlalchemy import or_
 from sqlalchemy.orm.exc import NoResultFound
 from stagger.errors import NoTagError
 from stagger.tags import read_tag
@@ -30,6 +29,7 @@ from stagger.tags import read_tag
 from uykfg.music.db.catalogue import Album, Track, Artist
 from uykfg.music.db.network import Link
 from uykfg.nest.finder import FinderError
+from uykfg.support import twice_monthly
 from uykfg.support.io import getimtime
 from uykfg.support.sequences import seq_and, lfilter
 
@@ -66,7 +66,7 @@ def scan_album(session, finder, remaining, path, files):
     add_album(session, finder, path, files)
 
 def is_unchanged_album(album, files):
-    if not randint(0, 14): return False # twice a month, check anyway
+    if not twice_monthly(): return False # twice a month, check anyway
     if len(files) != len(album.tracks): return False
     tracks = dict((track.file, track) for track in album.tracks)
     return seq_and(map(partial(is_unchanged_track, album.path, tracks), files))
