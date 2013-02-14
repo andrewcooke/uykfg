@@ -8,13 +8,8 @@ from uykfg.support import twice_monthly
 
 
 def link_all(session, linker):
-    new_artists = session.query(Artist).filter(Artist.new == True)
-    all_artists = session.query(Artist).order_by(random())
-    have_new = new_artists.count()
-    return link(session, linker, have_new, new_artists.all() if have_new else all_artists.all())
-
-def link(session, linker, have_new, artists):
-    for artist in artists:
+    have_new = session.query(Artist).filter(Artist.new == True).count()
+    for artist in session.query(Artist).order_by(random()).all():
         if have_new or twice_monthly():
             delete_src(session, artist)
             linker.link(session, artist)
