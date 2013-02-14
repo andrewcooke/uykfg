@@ -23,7 +23,7 @@ takes days to get the data for my music collection).  So this is not a good
 use of EchoNest and won't scale well.
 
 If, despite that, you want to use this code, please email me at
-andrew@acooke.org for the ID (I think this idea is that the program should
+andrew@acooke.org for the ID (I think the idea is that the program should
 use a single ID in the API; it is designed to self-throttle if multiple
 users are running).
 
