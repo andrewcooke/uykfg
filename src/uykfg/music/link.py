@@ -15,7 +15,7 @@ def link_all(session, linker):
             linker.link(session, artist)
             if have_new:
                 artist.new = False
-                session.commmit()
+                session.commit()
     debug('done!')
 
 def delete_src(session, artist):
