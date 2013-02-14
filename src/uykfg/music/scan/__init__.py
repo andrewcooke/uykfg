@@ -15,10 +15,12 @@ It's important that artists are not deleted with albums, because the link
 information is associated with artists (and would need to be rebuilt if
 artists were deleted).
 '''
+from functools import partial
 
 from logging import debug, warning, error
 from os import walk
 from os.path import join
+from random import randint
 from sqlalchemy import or_
 
 from sqlalchemy.orm.exc import NoResultFound
@@ -64,10 +66,10 @@ def scan_album(session, finder, remaining, path, files):
     add_album(session, finder, path, files)
 
 def is_unchanged_album(album, files):
-    return False # rely on cache
-#    if len(files) != len(album.tracks): return False
-#    tracks = dict((track.file, track) for track in album.tracks)
-#    return seq_and(map(partial(is_unchanged_track, album.path, tracks), files))
+    if not randint(0, 14): return False # twice a month, check anyway
+    if len(files) != len(album.tracks): return False
+    tracks = dict((track.file, track) for track in album.tracks)
+    return seq_and(map(partial(is_unchanged_track, album.path, tracks), files))
 
 def is_unchanged_track(path, tracks, file):
     filepath = join(path, file)
