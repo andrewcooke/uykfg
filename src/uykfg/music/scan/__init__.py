@@ -16,7 +16,7 @@ information is associated with artists (and would need to be rebuilt if
 artists were deleted).
 '''
 
-from logging import debug, warning
+from logging import debug, warning, error
 from os import walk
 from os.path import join
 from sqlalchemy import or_
@@ -88,12 +88,16 @@ def add_album(session, finder, path, files):
         session.add(album)
         tracks = list(add_tracks(session, finder, album, data))
         if tracks:
-            session.commit() # avoid too large a transaction
-            debug('added %s' % album)
-            return album
+            try:
+                session.commit() # avoid too large a transaction
+                debug('added %s' % album)
+                return
+            except KeyboardInterrupt as e: raise e
+            except Exception as e:
+                error('error adding %s: %s' % (album, e))
         else:
-            session.delete(album)
             warning('no tracks for %s' % path)
+        delete_album(album)
     else:
         warning('ambiguous title(s) for %s (%s)' % (path, titles))
 
