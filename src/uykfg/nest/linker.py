@@ -11,7 +11,7 @@ from uykfg.support.cache import Cache
 from uykfg.support.sequences import unpack
 
 
-EXCLUDE = set(['Various', 'Various Artists'])
+EXCLUDE = {'Various', 'Various Artists'}
 
 class Linker:
 
@@ -46,8 +46,8 @@ class Linker:
                             not session.query(Link).filter(Link.src == src, Link.dst == dst).count():
                         debug('linking %s to %s' % (src.name, dst.name))
                         session.add(Link(src=src, dst=dst))
-                        links += 1
                         commit = True
+                links += 1 # count nest artists, not multiple local artists
             except NoResultFound:
                 pass
         if commit: session.commit()
