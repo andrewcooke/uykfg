@@ -88,17 +88,17 @@ def add_album(session, finder, path, files):
         # we could use transactions, but simpler to delete if no tracks
         album = Album(name=titles.pop(), path=path)
         session.add(album)
-        tracks = list(add_tracks(session, finder, album, data))
-        if tracks:
-            try:
+        try:
+            tracks = list(add_tracks(session, finder, album, data))
+            if tracks:
                 session.commit() # avoid too large a transaction
                 debug('added %s' % album)
                 return
-            except KeyboardInterrupt as e: raise e
-            except Exception as e:
-                error('error adding %s: %s' % (album, e))
-        else:
-            warning('no tracks for %s' % path)
+            else:
+                warning('no tracks for %s' % path)
+        except KeyboardInterrupt as e: raise e
+        except Exception as e:
+            error('error adding %s: %s' % (album, e))
         delete_album(album)
     else:
         warning('ambiguous title(s) for %s (%s)' % (path, titles))
