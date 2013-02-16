@@ -26,9 +26,10 @@ def play_links(session, config):
                                         find_track(session, config.mp3_path, last),
                                         config.max_links))
                 sleep(1)
-        except (OperationalError, NoResultFound, ConnectionError) as e:
+        except KeyboardInterrupt as e: raise e
+        except Exception as e:
             warning(e)
-            sleep(60)
+            sleep(10)
 
 def empty(mpd):
     return not bool(mpd.playlistinfo(0))
