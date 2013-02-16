@@ -13,21 +13,22 @@ from uykfg.music.play import random_track, neighbour_track
 
 def play_links(session, config):
     mpd = MPDClient()
-    mpd.connect("localhost", 6600)
     while True:
         try:
-            if empty(mpd):
-                queue(mpd, config.mp3_path, random_track(session))
-            else:
-                last = almost_empty(mpd)
-                if last: queue(mpd, config.mp3_path,
-                               neighbour_track(session,
-                                    find_track(session, config.mp3_path, last),
-                                    config.max_links))
+            mpd.connect("localhost", 6600)
+            while True:
+                if empty(mpd):
+                    queue(mpd, config.mp3_path, random_track(session))
+                else:
+                    last = almost_empty(mpd)
+                    if last: queue(mpd, config.mp3_path,
+                                   neighbour_track(session,
+                                        find_track(session, config.mp3_path, last),
+                                        config.max_links))
+                sleep(1)
         except (OperationalError, NoResultFound, ConnectionError) as e:
             warning(e)
             sleep(60)
-        sleep(1)
 
 def empty(mpd):
     return not bool(mpd.playlistinfo(0))
