@@ -3,7 +3,7 @@ from logging import warning
 from os.path import split, join
 from time import sleep
 
-from mpd import MPDClient
+from mpd import MPDClient, ConnectionError
 from sqlalchemy.exc import OperationalError
 from sqlalchemy.orm.exc import NoResultFound
 from uykfg.music.db.catalogue import Track, Album
@@ -24,7 +24,7 @@ def play_links(session, config):
                                neighbour_track(session,
                                     find_track(session, config.mp3_path, last),
                                     config.max_links))
-        except (OperationalError, NoResultFound) as e:
+        except (OperationalError, NoResultFound, ConnectionError) as e:
             warning(e)
             sleep(60)
         sleep(1)
