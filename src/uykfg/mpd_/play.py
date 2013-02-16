@@ -12,9 +12,9 @@ from uykfg.music.play import random_track, neighbour_track
 
 
 def play_links(session, config):
-    mpd = MPDClient()
     while True:
         try:
+            mpd = MPDClient()
             mpd.connect("localhost", 6600)
             while True:
                 if empty(mpd):
