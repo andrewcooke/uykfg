@@ -8,14 +8,12 @@ from uykfg.support.configure import Config
 
 
 def drop(artist):
-    warning('deleteing %s' % artist)
+    warning('deleting %s' % artist)
     config = Config.default()
     session = startup(config)
     for artist in session.query(Artist).filter(Artist.name == artist).all():
         for track in session.query(Track).filter(Track.artist_id == artist.id).all():
             info('deleting %s from %s' % (track.name, track.album))
-            track.album.tracks.remove(track)
-            track.artist.tracks.remove(track)
             session.delete(track)
         session.commit()
 
