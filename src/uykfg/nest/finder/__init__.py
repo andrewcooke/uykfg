@@ -55,8 +55,12 @@ class Finder:
         self._api = Cache(RateLimitingApi(config.api_key), session)
 
     def missing_artist(self, session, tracks):
+        tested = set()
         for track in tracks:
-            try: self._nest_artist_from_music_artist(session, track.artist)
+            try:
+                if track.artist not in tested:
+                    tested.add(track.artist)
+                    self._nest_artist_from_music_artist(session, track.artist)
             except NoResultFound:
                 warning('no nest artist for %s' % track.artist.name)
                 return True
