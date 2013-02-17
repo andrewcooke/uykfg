@@ -48,7 +48,7 @@ def distinct_artists(artists):
 
 
 DROP_TRAILING_PARENS = compile(r'(.{6,})\s*\([^)]+\)\s*$')
-UNWRAP = compile(r'(?:\s*[Tt]he\s+)?(.+)\s+(?:[Oo]rchestra|[Bb]and)')
+UNWRAP = compile(r'(?:\s*[Tt]he\s+)?(.+)\s+(?:[Oo]rchestra|[Bb]and)[\s|$]')
 SPLIT = compile(r'(.+?)(?:&|,|\+|/|[,\s]+(?:[Aa][Nn][Dd]|[Yy]|[Ii]|[Vv][Ss]|[Ff][Tt].?|[Ff][Ee][Aa][Tt].?|[Ff]eaturing|-|[Ww]ith|[Aa][Kk][Aa])\s+)(.+)')
 
 def alternatives(artist, known, original):
