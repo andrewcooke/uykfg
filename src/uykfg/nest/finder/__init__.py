@@ -23,31 +23,54 @@ def distinct_artists(artists):
             known.add(id)
 
 
-TEMPLATES = lmap(compile, [
-    r'([^&,+/]+?)\s*[&,+/]',
-    r'[^&,+/]+[&,+/]\s*([^&,+/]+)',
-    r'[^&,+/]+[&,+/][^&,+/]+[&,+/]\s*([^&,+/]+)',
-    r'[^&,+/]+[&,+/][^&,+/]+[&,+/][^&,+/]+[&,+/]\s*([^&,+/]+)',
-    r'[^&,+/]+[&,+/][^&,+/]+[&,+/][^&,+/]+[&,+/][^&,+/]+[&,+/]\s*([^&,+/]+)',
-    r'[^&,+/]+[&,+/][^&,+/]+[&,+/][^&,+/]+[&,+/][^&,+/]+[&,+/][^&,+/]+[&,+/]\s*([^&,+/]+)',
-    r'(.+?)[,\s]+(?:[Aa][Nn][Dd]|[Yy]|[Ii]|[Vv][Ss]|[Ff][Tt].?|[Ff][Ee][Aa][Tt].?|[Ff]eaturing|-|[Ww]ith|[Aa][Kk][Aa])\s+',
-    r'.*[,\s]+(?:[Aa][Nn][Dd]|[Yy]|[Ii]|[Vv][Ss]|[Ff][Tt].?|[Ff][Ee][Aa][Tt].?|[Ff]eaturing|-|[Ww]ith|[Aa][Kk][Aa])\s+(.+)',
-    r'(?:[Tt]he\s+)?(.+)\s+[Oo]rchestra',
-    r'(?:[Tt]he\s+)?(.+)\s+[Bb]and',
-    r'([^()]+)\s*\([^)]*\)',
-])
-
-def possible_names(artist):
-    yield artist
-    for template in TEMPLATES:
-        match = template.match(artist)
-        if match:
-            result = match.group(1)
-            debug('matched %s on %s to give %s' % (template.pattern, artist, result))
-            yield result
+#TEMPLATES = lmap(compile, [
+#    r'([^&,+/]+?)\s*[&,+/]',
+#    r'[^&,+/]+[&,+/]\s*([^&,+/]+)',
+#    r'[^&,+/]+[&,+/][^&,+/]+[&,+/]\s*([^&,+/]+)',
+#    r'[^&,+/]+[&,+/][^&,+/]+[&,+/][^&,+/]+[&,+/]\s*([^&,+/]+)',
+#    r'[^&,+/]+[&,+/][^&,+/]+[&,+/][^&,+/]+[&,+/][^&,+/]+[&,+/]\s*([^&,+/]+)',
+#    r'[^&,+/]+[&,+/][^&,+/]+[&,+/][^&,+/]+[&,+/][^&,+/]+[&,+/][^&,+/]+[&,+/]\s*([^&,+/]+)',
+#    r'(.+?)[,\s]+(?:[Aa][Nn][Dd]|[Yy]|[Ii]|[Vv][Ss]|[Ff][Tt].?|[Ff][Ee][Aa][Tt].?|[Ff]eaturing|-|[Ww]ith|[Aa][Kk][Aa])\s+',
+#    r'.*[,\s]+(?:[Aa][Nn][Dd]|[Yy]|[Ii]|[Vv][Ss]|[Ff][Tt].?|[Ff][Ee][Aa][Tt].?|[Ff]eaturing|-|[Ww]ith|[Aa][Kk][Aa])\s+(.+)',
+#    r'(?:[Tt]he\s+)?(.+)\s+[Oo]rchestra',
+#    r'(?:[Tt]he\s+)?(.+)\s+[Bb]and',
+#    r'([^()]+)\s*\([^)]*\)',
+#])
+#
+#def possible_names(artist):
+#    yield artist
+#    for template in TEMPLATES:
+#        match = template.match(artist)
+#        if match:
+#            result = match.group(1)
+#            debug('matched %s on %s to give %s' % (template.pattern, artist, result))
+#            yield result
 
 
 DROP_TRAILING_PARENS = compile(r'(.{6,})\s*\([^)]+\)\s*$')
+UNWRAP = compile(r'(?:\s*[Tt]he\s+)?(.+)\s+(?:[Oo]rchestra|[Bb]and)')
+SPLIT = compile(r'(.+?)(?:&|,|\+|/|[,\s]+(?:[Aa][Nn][Dd]|[Yy]|[Ii]|[Vv][Ss]|[Ff][Tt].?|[Ff][Ee][Aa][Tt].?|[Ff]eaturing|-|[Ww]ith|[Aa][Kk][Aa])\s+)(.+)')
+
+def alternatives(artist, known):
+    print('alternatives ', artist)
+    name = artist.strip()
+    if name not in known:
+        known.add(name)
+        yield name
+    for expr in (DROP_TRAILING_PARENS, UNWRAP):
+        match = expr.match(artist)
+        if match:
+            for name in possible_names(match.group(1), first=True, known=known): yield name
+
+def possible_names(artist, first=True, known=None):
+    print('possible_names', artist)
+    if not known: known = set()
+    match = SPLIT.match(artist)
+    if first or not match:
+        for name in alternatives(artist, known): yield name
+    if match:
+        for name in alternatives(match.group(1), known): yield name
+        for name in possible_names(match.group(2), first=False, known=known): yield name
 
 
 class FinderError(Exception): pass
