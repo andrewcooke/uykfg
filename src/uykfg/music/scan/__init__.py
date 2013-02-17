@@ -65,7 +65,7 @@ def scan_album(session, finder, remaining, path, files):
     add_album(session, finder, path, files)
 
 def is_unchanged_album(album, files):
-    if not twice_monthly(): return False # twice a month, check anyway
+    if twice_monthly(): return False # twice a month, check anyway
     if len(files) != len(album.tracks): return False
     tracks = dict((track.file, track) for track in album.tracks)
     return seq_and(map(partial(is_unchanged_track, album.path, tracks), files))
