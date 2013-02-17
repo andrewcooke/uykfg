@@ -52,6 +52,9 @@ def possible_names(artist):
             yield result
 
 
+DROP_TRAILING_PARENS = compile(r'.{6,}\([^)]+\)\s*$')
+
+
 class FinderError(Exception): pass
 
 
@@ -99,6 +102,12 @@ class Finder:
         if artist: params['artist'] = artist
         for song in unpack(self._api('song', 'search', **params), 'response', 'songs'):
             yield song['artist_id'], song['artist_name']
+        match = DROP_TRAILING_PARENS.match(title)
+        if match:
+            title = match.group(1)
+            debug('retrying with %s' % title)
+            for id, name in self._song_search(title, artist, results):
+                yield id, name
 
     def find_tracks_artist(self, session, artist, titles):
         artists = Counter()
