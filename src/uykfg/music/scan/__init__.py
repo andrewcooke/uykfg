@@ -60,13 +60,14 @@ def scan_album(session, finder, remaining, path, files):
     debug('scanning album at %s' % path)
     if path in remaining:
         album = remaining[path]; del remaining[path]
-        if is_unchanged_album(album, files): return
+        if is_unchanged_album(session, finder, album, files): return
         delete_album(session, album)
     add_album(session, finder, path, files)
 
-def is_unchanged_album(album, files):
+def is_unchanged_album(session, finder, album, files):
     if twice_monthly(): return False # twice a month, check anyway
     if len(files) != len(album.tracks): return False
+    if finder.missing_artist(session, album.tracks): return False
     tracks = dict((track.file, track) for track in album.tracks)
     return seq_and(map(partial(is_unchanged_track, album.path, tracks), files))
 

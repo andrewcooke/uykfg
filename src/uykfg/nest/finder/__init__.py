@@ -52,6 +52,14 @@ class Finder:
     def __init__(self, config, session):
         self._api = Cache(RateLimitingApi(config.api_key), session)
 
+    def missing_artist(self, session, tracks):
+        for track in tracks:
+            try: self._nest_artist_from_music_artist(session, track.artist)
+            except NoResultFound:
+                debug('no nest artist for %s' % track.artist.name)
+                return True
+        return False
+
     def find_track_artist(self, session, artist, title):
         for name in possible_names(artist):
             try:
@@ -106,10 +114,13 @@ class Finder:
             'response', 'artists', 0)
         return artist['id'], artist['name']
 
+    def _nest_artist_from_music_artist(self, session, artist):
+        return session.query(NestArtist)\
+                .filter(NestArtist.artists.any(id=artist.id)).one()
+
     def delete_artist(self, session, artist):
         try:
-            nest_artist = session.query(NestArtist)\
-                .filter(NestArtist.artists.any(id=artist.id)).one()
+            nest_artist = self._nest_artist_from_music_artist(session, artist)
             nest_artist.artists.remove(artist)
         except NoResultFound:
             warning('no nest artist for %s' % artist.name)
