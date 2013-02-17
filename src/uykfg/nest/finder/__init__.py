@@ -52,7 +52,7 @@ def possible_names(artist):
             yield result
 
 
-DROP_TRAILING_PARENS = compile(r'.{6,}\([^)]+\)\s*$')
+DROP_TRAILING_PARENS = compile(r'(.{6,})\s*\([^)]+\)\s*$')
 
 
 class FinderError(Exception): pass
