@@ -40,7 +40,6 @@ def scan_all(session, finder, config):
     for path, files in candidates(config.mp3_path):
         scan_album(session, finder, remaining, path, files)
     cull_albums(session, remaining)
-    for path in remaining: delete_album(session, remaining[path])
     cull_artists(session, finder)
     debug('done!')
 

@@ -148,7 +148,7 @@ class Finder:
             nest_artist = self._nest_artist_from_music_artist(session, artist)
             nest_artist.artists.remove(artist)
         except NoResultFound:
-            warning('no nest artist for %s' % artist.name)
+            debug('no nest artist for %s' % artist.name)
 
 
 
