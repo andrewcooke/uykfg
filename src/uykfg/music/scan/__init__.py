@@ -42,7 +42,6 @@ def scan_all(session, finder, config):
     cull_albums(session, remaining)
     for path in remaining: delete_album(session, remaining[path])
     cull_artists(session, finder)
-    session.commit()
     debug('done!')
 
 def candidates(root):
@@ -84,14 +83,15 @@ def add_album(session, finder, path, files):
     data = list(file_data(path, files))
     titles = set(tag.album for (tag, file, modified) in data)
     if len(titles) == 1:
-        # create album here so that is exists for the tracks to reference
-        # we could use transactions, but simpler to delete if no tracks
-        album = Album(name=titles.pop(), path=path)
-        session.add(album)
-        session.commit() # rollback to here
         try:
+            # transaction starts here.
+            # create album so that is exists for the tracks to reference
+            album = Album(name=titles.pop(), path=path)
+            session.add(album)
+            # then add tracks
             tracks = list(add_tracks(session, finder, album, data))
             if tracks:
+                # commit on success
                 session.commit()
                 debug('added %s' % album)
                 return
@@ -99,9 +99,9 @@ def add_album(session, finder, path, files):
                 warning('no tracks for %s' % path)
         except KeyboardInterrupt as e: raise e
         except Exception as e:
-            session.rollback()
             error('error adding %s: %s' % (album, e))
-        delete_album(album)
+        # if no tracks, or error, discard
+        session.rollback()
     else:
         warning('ambiguous title(s) for %s (%s)' % (path, titles))
 
@@ -195,10 +195,12 @@ def cull_artists(session, finder):
         session.query(Link).filter(or_(Link.src == artist, Link.dst == artist)).delete()
         finder.delete_artist(session, artist)
         session.delete(artist)
+    session.commit()
 
 def cull_albums(session, remaining):
     debug('removing unused albums')
     for path in remaining: delete_album(session, remaining[path])
+    session.commit()
 
 def get_tag(path):
     try:

@@ -48,14 +48,12 @@ class Finder:
             debug('creating nest artist %s:%s' % (nest_name, nest_id))
             nest_artist = NestArtist(id=nest_id, name=nest_name)
             session.add(nest_artist)
-            session.commit()
         for artist in nest_artist.artists:
             if artist.name == id3_name: return artist
         debug('creating artist %s' % id3_name)
         artist = Artist(name = id3_name)
         session.add(artist)
         nest_artist.artists.append(artist)
-        session.commit()
         return artist
 
     def find_tracks_artist(self, session, artist, titles):
