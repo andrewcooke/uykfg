@@ -20,3 +20,5 @@ class NamesTest(TestCase):
             'the foo & bar band', 'foo & bar', 'foo', 'bar', 'the foo', 'bar band')
         self.assert_names('bar & the foo band',
             'bar & the foo band', 'foo', 'bar', 'the foo band', 'bar & the foo', 'the foo')
+        self.assert_names('foo, bar, baz',
+            'foo, bar, baz', 'foo', 'bar', 'baz')
