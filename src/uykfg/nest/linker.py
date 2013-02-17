@@ -1,5 +1,5 @@
 
-from logging import debug
+from logging import debug, warning, error
 from urllib.error import URLError
 from sqlalchemy.orm.exc import NoResultFound
 
@@ -28,10 +28,12 @@ class Linker:
                 links = self._link_delta(session, src, start, results, links, id)
                 start = results
                 results *= 2
+            if not links:
+                warning('no links for %s' % src.name)
         except NoResultFound:
-            debug('no nest artist for %s' % src.name)
+            warning('no nest artist for %s' % src.name)
         except (AttributeError, IndexError, URLError) as e:
-            debug(e)
+            error(e)
 
     def _link_delta(self, session, src, start, results, links, id):
         commit = False

@@ -19,3 +19,4 @@ class NestArtist(TableBase):
     id = Column(UnicodeText, primary_key=True, nullable=False) # echonest ID
     name = Column(UnicodeText, nullable=False)
     artists = relationship(Artist, secondary=artists_to_artists)
+
