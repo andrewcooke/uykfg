@@ -2,6 +2,8 @@
 from logging import debug, warning
 from urllib.error import URLError
 from collections import Counter
+from re import compile
+
 from sqlalchemy.orm.exc import NoResultFound
 
 from uykfg.music.db import startup
@@ -10,15 +12,36 @@ from uykfg.nest.api import RateLimitingApi
 from uykfg.nest.db import NestArtist
 from uykfg.support.cache import Cache
 from uykfg.support.configure import Config
-from uykfg.support.sequences import unpack
+from uykfg.support.sequences import unpack, lmap
 
 
-def single_artist(artists):
+def distinct_artists(artists):
     known = set()
     for (id, name) in artists:
         if id not in known:
             yield id, name
             known.add(id)
+
+
+TEMPLATES = lmap(compile, [
+    r'([^,]+)\s*,', # drop after comma (list, or ", The" or ", Chile")
+    r'([^&]+)\s*&',
+    r'(.+?)\s+[Aa][Nn][Dn]\s+',
+    r'(.+?)\s+[Vv][Ss].?\s+',
+    r'.*\s+[Vv][Ss].?\s+(.+)',
+    r'(.+?)\s+[Ff][Tt].?\s+',
+    r'(?:[Tt]he\s+)?(.{6,})\s+[Oo]rchestra',
+    r'(?:[Tt]he\s+)?(.{6,})\s+[Bb]and',
+])
+
+def possible_names(artist):
+    yield artist
+    for template in TEMPLATES:
+        match = template.match(artist)
+        if match:
+            result = match.group(1)
+            debug('matched %s on %s to give %s' % (template.pattern, artist, result))
+            yield result
 
 
 class FinderError(Exception): pass
@@ -30,16 +53,11 @@ class Finder:
         self._api = Cache(RateLimitingApi(config.api_key), session)
 
     def find_track_artist(self, session, artist, title):
-        try:
-            return self._artist(session, artist, *next(self._song_search(title, artist=artist)))
-        except (StopIteration, URLError):
-            raise FinderError(artist)
-
-    def _song_search(self, title, artist=None, results=1):
-        params = {'title': title, 'results': results, 'sort': 'artist_familiarity-desc'}
-        if artist: params['artist'] = artist
-        for song in unpack(self._api('song', 'search', **params), 'response', 'songs'):
-            yield song['artist_id'], song['artist_name']
+        for name in possible_names(artist):
+            try:
+                return self._artist(session, artist, *next(self._song_search(title, artist=name)))
+            except (StopIteration, URLError): pass
+        raise FinderError(artist)
 
     def _artist(self, session, id3_name, nest_id, nest_name):
         try:
@@ -56,11 +74,17 @@ class Finder:
         nest_artist.artists.append(artist)
         return artist
 
+    def _song_search(self, title, artist=None, results=1):
+        params = {'title': title, 'results': results, 'sort': 'artist_familiarity-desc'}
+        if artist: params['artist'] = artist
+        for song in unpack(self._api('song', 'search', **params), 'response', 'songs'):
+            yield song['artist_id'], song['artist_name']
+
     def find_tracks_artist(self, session, artist, titles):
         artists = Counter()
         for title in titles:
             try:
-                artists.update(single_artist(self._song_search(title, results=15)))
+                artists.update(distinct_artists(self._song_search(title, results=15)))
                 debug(artists)
             except URLError as e: debug(e)
         if artists:
