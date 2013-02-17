@@ -56,7 +56,7 @@ class Finder:
         for track in tracks:
             try: self._nest_artist_from_music_artist(session, track.artist)
             except NoResultFound:
-                debug('no nest artist for %s' % track.artist.name)
+                warning('no nest artist for %s' % track.artist.name)
                 return True
         return False
 
