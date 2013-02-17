@@ -34,6 +34,7 @@ TEMPLATES = lmap(compile, [
     r'.*[,\s]+(?:[Aa][Nn][Dd]|[Yy]|[Ii]|[Vv][Ss]|[Ff][Tt].?|[Ff][Ee][Aa][Tt].?|[Ff]eaturing|-|[Ww]ith|[Aa][Kk][Aa])\s+(.+)',
     r'(?:[Tt]he\s+)?(.+)\s+[Oo]rchestra',
     r'(?:[Tt]he\s+)?(.+)\s+[Bb]and',
+    r'([^()]+)\s*\([^)]*\)',
 ])
 
 def possible_names(artist):
