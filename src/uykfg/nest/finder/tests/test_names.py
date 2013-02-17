@@ -1,4 +1,4 @@
-
+from logging import DEBUG, basicConfig
 from unittest import TestCase
 from uykfg.nest.finder import possible_names
 
@@ -11,6 +11,7 @@ class NamesTest(TestCase):
         assert set(results) == set(names), results
 
     def test_names(self):
+        basicConfig(level=DEBUG)
         self.assert_names('bob', 'bob')
         self.assert_names('Xela & Jefre Cantu-Ledesma',
             'Xela & Jefre Cantu-Ledesma', 'Xela', 'Jefre Cantu-Ledesma')

@@ -51,26 +51,27 @@ DROP_TRAILING_PARENS = compile(r'(.{6,})\s*\([^)]+\)\s*$')
 UNWRAP = compile(r'(?:\s*[Tt]he\s+)?(.+)\s+(?:[Oo]rchestra|[Bb]and)')
 SPLIT = compile(r'(.+?)(?:&|,|\+|/|[,\s]+(?:[Aa][Nn][Dd]|[Yy]|[Ii]|[Vv][Ss]|[Ff][Tt].?|[Ff][Ee][Aa][Tt].?|[Ff]eaturing|-|[Ww]ith|[Aa][Kk][Aa])\s+)(.+)')
 
-def alternatives(artist, known):
-    print('alternatives ', artist)
+def alternatives(artist, known, original):
     name = artist.strip()
     if name not in known:
         known.add(name)
+        if original.strip() != name: debug('%s -> %s' % (original, name))
         yield name
     for expr in (DROP_TRAILING_PARENS, UNWRAP):
         match = expr.match(artist)
         if match:
-            for name in possible_names(match.group(1), first=True, known=known): yield name
+            for name in possible_names(match.group(1), first=True, known=known, original=original):
+                yield name
 
-def possible_names(artist, first=True, known=None):
-    print('possible_names', artist)
+def possible_names(artist, first=True, known=None, original=None):
     if not known: known = set()
+    if not original: original = artist
     match = SPLIT.match(artist)
     if first or not match:
-        for name in alternatives(artist, known): yield name
+        for name in alternatives(artist, known, original): yield name
     if match:
-        for name in alternatives(match.group(1), known): yield name
-        for name in possible_names(match.group(2), first=False, known=known): yield name
+        for name in alternatives(match.group(1), known, original): yield name
+        for name in possible_names(match.group(2), first=False, known=known, original=original): yield name
 
 
 class FinderError(Exception): pass
