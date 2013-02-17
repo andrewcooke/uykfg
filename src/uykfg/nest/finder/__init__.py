@@ -26,10 +26,15 @@ def distinct_artists(artists):
 TEMPLATES = lmap(compile, [
     r'([^,]+)\s*,', # drop after comma (list, or ", The" or ", Chile")
     r'([^&]+)\s*&',
+    r'.*&\s+(.+)',
     r'(.+?)\s+[Aa][Nn][Dn]\s+',
+    r'.*\s+[Aa][Nn][Dn]\s+(.+)',
     r'(.+?)\s+[Yy]\s+',
+    r'.*\s+[Yy]\s+(.+)',
     r'(.+?)\s+[Ii]\s+',
+    r'.*\s+[Ii]\s+(.+)',
     r'(.+?)\s+-\s+',
+    r'.*\s+-\s+(.+)',
     r'(.+?)\s+[Vv][Ss].?\s+',
     r'.*\s+[Vv][Ss].?\s+(.+)',
     r'(.+?)\s+[Ff][Tt].?\s+',
