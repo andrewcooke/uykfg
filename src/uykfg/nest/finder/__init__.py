@@ -38,6 +38,8 @@ TEMPLATES = lmap(compile, [
     r'(.+?)\s+[Vv][Ss].?\s+',
     r'.*\s+[Vv][Ss].?\s+(.+)',
     r'(.+?)\s+[Ff][Tt].?\s+',
+    r'(.+?)\s+[Ff][Ee][Aa][Tt].?\s+',
+    r'(.+?)\s+[Ff]eaturing\s+',
     r'(?:[Tt]he\s+)?(.{6,})\s+[Oo]rchestra',
     r'(?:[Tt]he\s+)?(.{6,})\s+[Bb]and',
 ])
