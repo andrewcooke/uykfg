@@ -30,8 +30,8 @@ TEMPLATES = lmap(compile, [
     r'[^&,+/]+[&,+/][^&,+/]+[&,+/][^&,+/]+[&,+/]\s*([^&,+/]+)',
     r'[^&,+/]+[&,+/][^&,+/]+[&,+/][^&,+/]+[&,+/][^&,+/]+[&,+/]\s*([^&,+/]+)',
     r'[^&,+/]+[&,+/][^&,+/]+[&,+/][^&,+/]+[&,+/][^&,+/]+[&,+/][^&,+/]+[&,+/]\s*([^&,+/]+)',
-    r'(.+?)[,\s]+(?:[Aa][Nn][Dd]|[Yy]|[Ii]|[Vv][Ss]|[Ff][Tt].?|[Ff][Ee][Aa][Tt].?|[Ff]eaturing|-|[Ww]ith)\s+',
-    r'.*[,\s]+(?:[Aa][Nn][Dd]|[Yy]|[Ii]|[Vv][Ss]|[Ff][Tt].?|[Ff][Ee][Aa][Tt].?|[Ff]eaturing|-|[Ww]ith)\s+(.+)',
+    r'(.+?)[,\s]+(?:[Aa][Nn][Dd]|[Yy]|[Ii]|[Vv][Ss]|[Ff][Tt].?|[Ff][Ee][Aa][Tt].?|[Ff]eaturing|-|[Ww]ith|[Aa][Kk][Aa])\s+',
+    r'.*[,\s]+(?:[Aa][Nn][Dd]|[Yy]|[Ii]|[Vv][Ss]|[Ff][Tt].?|[Ff][Ee][Aa][Tt].?|[Ff]eaturing|-|[Ww]ith|[Aa][Kk][Aa])\s+(.+)',
     r'(?:[Tt]he\s+)?(.+)\s+[Oo]rchestra',
     r'(?:[Tt]he\s+)?(.+)\s+[Bb]and',
 ])
