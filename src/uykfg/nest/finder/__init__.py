@@ -27,6 +27,8 @@ TEMPLATES = lmap(compile, [
     r'([^,]+)\s*,', # drop after comma (list, or ", The" or ", Chile")
     r'([^&]+)\s*&',
     r'.*&\s+(.+)',
+    r'([^/]+)\s*/',
+    r'.*/\s+(.+)',
     r'(.+?)\s+[Aa][Nn][Dd]\s+',
     r'.*\s+[Aa][Nn][Dd]\s+(.+)',
     r'(.+?)\s+[Yy]\s+',
