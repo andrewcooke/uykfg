@@ -19,14 +19,14 @@ def drop(name):
             session.delete(track)
         session.commit()
     artists = session.query(Artist).outerjoin((Track, Artist.id == Track.artist_id)).filter(Track.id == None)
-    info('deleting %d unused artists' % artists.count())
-    for artist in artists.all():
-        session.query(Link)\
-            .filter(or_(Link.src == artist, Link.dst == artist)).delete()
-    artists.delete()
-    albums = session.query(Album).outerjoin(Track).filter(Track.id == None)
-    info('deleting %d unused albums' % albums.count())
-    albums.delete()
+    warning('deleting %d unused artists' % artists.count())
+#    for artist in artists.all():
+#        session.query(Link)\
+#            .filter(or_(Link.src == artist, Link.dst == artist)).delete()
+#    artists.delete()
+#    albums = session.query(Album).outerjoin(Track).filter(Track.id == None)
+#    info('deleting %d unused albums' % albums.count())
+#    albums.delete()
     session.commit()
 
 
