@@ -201,7 +201,7 @@ def cull_artists(session, finder):
 def cull_albums(session):
     albums = session.query(Album).filter(Album.tracks == None)
     warning('removing %d unused albums' % albums.count())
-    albums.delete()
+    albums.delete(synchronize_session=False)
     session.commit()
 
 def get_tag(path):
