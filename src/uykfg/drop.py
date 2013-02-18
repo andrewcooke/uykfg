@@ -16,6 +16,15 @@ def drop(name):
             info('deleting %s from %s' % (track.name, track.album))
             session.delete(track)
         session.commit()
+    artists = session.query(Artist).outerjoin(Track)\
+        .filter(Track.artist_id == Artist.id, Track.id == None)
+    info('deleting %d unused artists' % artists.count())
+    artists.delete()
+    albums = session.query(Album).outerjoin(Track)\
+        .filter(Track.album_id == Album.id, Track.id == None)
+    info('deleting %d unused albums' % albums.count())
+    albums.delete()
+    session.commit()
 
 
 if __name__ == '__main__':
