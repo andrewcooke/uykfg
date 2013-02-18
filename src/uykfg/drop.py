@@ -24,8 +24,7 @@ def drop(name):
         session.query(Link)\
             .filter(or_(Link.src == artist, Link.dst == artist)).delete()
     artists.delete()
-    albums = session.query(Album).outerjoin(Track)\
-        .filter(Track.album_id == Album.id, Track.id == None)
+    albums = session.query(Album).outerjoin(Track).filter(Track.id == None)
     info('deleting %d unused albums' % albums.count())
     albums.delete()
     session.commit()
