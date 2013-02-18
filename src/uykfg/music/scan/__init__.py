@@ -191,7 +191,7 @@ def add_album_tracks(session, finder, album, data):
 
 def cull_artists(session, finder):
     artists = session.query(Artist).filter(Artist.tracks == None)
-    debug('removing %d unused artists' % artists.count())
+    warning('removing %d unused artists' % artists.count())
     for artist in artists.all():
         session.query(Link).filter(or_(Link.src == artist, Link.dst == artist)).delete()
         finder.delete_artist(session, artist)
@@ -199,8 +199,8 @@ def cull_artists(session, finder):
     session.commit()
 
 def cull_albums(session):
-    albums = session.query(Album).filter(Album.artists == None)
-    debug('removing %d unused albums' % albums.count())
+    albums = session.query(Album).filter(Album.tracks == None)
+    warning('removing %d unused albums' % albums.count())
     albums.delete()
     session.commit()
 
