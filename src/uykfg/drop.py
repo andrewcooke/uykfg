@@ -15,18 +15,21 @@ def drop(name):
     session = startup(config)
     for artist in session.query(Artist).filter(Artist.name == name).all():
         for track in session.query(Track).filter(Track.artist_id == artist.id).all():
-            info('deleting %s from %s' % (track.name, track.album))
+            warning('deleting %s from %s' % (track.name, track.album))
             session.delete(track)
         session.commit()
-    artists = session.query(Artist).outerjoin((Track, Artist.id == Track.artist_id)).filter(Track.id == None)
+    artists = session.query(Artist.id).outerjoin(Track)\
+        .filter(Track.id == None)
     warning('deleting %d unused artists' % artists.count())
-#    for artist in artists.all():
-#        session.query(Link)\
-#            .filter(or_(Link.src == artist, Link.dst == artist)).delete()
-#    artists.delete()
-#    albums = session.query(Album).outerjoin(Track).filter(Track.id == None)
-#    info('deleting %d unused albums' % albums.count())
-#    albums.delete()
+    for artist in artists.all():
+        session.query(Link)\
+            .filter(or_(Link.src == artist, Link.dst == artist)).delete()
+    session.query(Artist).filter(Artist.id.in_(artists))\
+        .delete(synchronize_session=False)
+    albums = session.query(Album.id).outerjoin(Track).filter(Track.id == None)
+    warning('deleting %d unused albums' % albums.count())
+    session.query(Album).filter(Album.id.in_(albums))\
+        .delete(synchronize_session=False)
     session.commit()
 
 
