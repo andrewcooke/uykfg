@@ -1,9 +1,11 @@
 
 from logging import warning, info
 from sys import argv
+from sqlalchemy import or_
 
 from uykfg.music.db import startup
 from uykfg.music.db.catalogue import Artist, Track, Album
+from uykfg.music.db.network import Link
 from uykfg.support.configure import Config
 
 
@@ -19,6 +21,9 @@ def drop(name):
     artists = session.query(Artist).outerjoin(Track)\
         .filter(Track.artist_id == Artist.id, Track.id == None)
     info('deleting %d unused artists' % artists.count())
+    for artist in artists.all():
+        session.query(Link)\
+            .filter(or_(Link.src == artist, Link.dst == artist)).delete()
     artists.delete()
     albums = session.query(Album).outerjoin(Track)\
         .filter(Track.album_id == Album.id, Track.id == None)
