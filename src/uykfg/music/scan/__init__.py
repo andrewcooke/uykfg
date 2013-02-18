@@ -190,16 +190,18 @@ def add_album_tracks(session, finder, album, data):
         warning('no artist found for %s' % album.path)
 
 def cull_artists(session, finder):
-    debug('removing unused artists')
-    for artist in session.query(Artist).filter(Artist.tracks == None).all():
+    artists = session.query(Artist).filter(Artist.tracks == None)
+    debug('removing %d unused artists' % artists.count())
+    for artist in artists.all():
         session.query(Link).filter(or_(Link.src == artist, Link.dst == artist)).delete()
         finder.delete_artist(session, artist)
         session.delete(artist)
     session.commit()
 
-def cull_albums(session, remaining):
-    debug('removing unused albums')
-    for path in remaining: delete_album(session, remaining[path])
+def cull_albums(session):
+    albums = session.query(Album).filter(Album.artists == None)
+    debug('removing %d unused albums' % albums.count())
+    albums.delete()
     session.commit()
 
 def get_tag(path):
