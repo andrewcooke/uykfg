@@ -6,5 +6,6 @@ do
   PARAMS="${PARAMS} \"${PARAM}\""
 done
 source env/bin/activate
-PYTHONPATH=src python src/uykfg/drop.py $PARAMS
+bash -c "PYTHONPATH=src python src/uykfg/drop.py $PARAMS"
+
 
