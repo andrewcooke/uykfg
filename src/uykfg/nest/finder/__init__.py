@@ -11,6 +11,7 @@ from uykfg.music.db.catalogue import Artist
 from uykfg.music.db.tags import Tag
 from uykfg.nest.api import RateLimitingApi
 from uykfg.nest.db import NestArtist
+from uykfg.support import twice_monthly
 from uykfg.support.cache import Cache
 from uykfg.support.configure import Config
 from uykfg.support.sequences import unpack, lmap
@@ -83,7 +84,9 @@ class Finder:
     def _create_artist(self, session, id3_name, nest_id, nest_name):
         nest_artist = self._nest_artist(session, nest_id, nest_name)
         for artist in nest_artist.artists:
-            if artist.name == id3_name: return artist
+            if artist.name == id3_name:
+                if twice_monthly(): self._check_tags(session, nest_artist, artist)
+                return artist
         return self._music_artist(session, nest_artist, id3_name)
 
     def _nest_artist(self, session, nest_id, nest_name):
@@ -115,6 +118,10 @@ class Finder:
                 tag = Tag(text=text)
                 session.add(tag)
             yield tag
+
+    def _check_tags(self, session, nest_artist, artist):
+        for tag in artist.tags: artist.tags.remove(tag)
+        for tag in self._tags(session, nest_artist): artist.tags.add(tag)
 
     def _song_search(self, title, artist=None, results=1):
         params = {'title': title, 'results': results, 'sort': 'artist_familiarity-desc'}
