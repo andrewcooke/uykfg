@@ -174,7 +174,7 @@ class Finder:
 
     def local_artist(self, session, id3name):
         for artist in session.query(Artist).filter(Artist.name == id3name):
-            if not session.query(NestArtist).filter(NestArtist.artists.any(artist)).count():
+            if not session.query(NestArtist).filter(NestArtist.artists.any(id=artist.id)).count():
                 debug('existing local artist %s' % id3name)
                 return artist
         debug('creating local artist %s' % id3name)
