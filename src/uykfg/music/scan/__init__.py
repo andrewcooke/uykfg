@@ -146,14 +146,12 @@ def add_tracks(session, finder, album, data):
             retry2 = [] # we found the artist
     # finally, construct new artist local to this album
     if retry2:
-        warning('%d unconfirmed artists in %s' % (len(retry2), album.path))
+        warning('%d unconfirmed tracks in %s' % (len(retry2), album.path))
         local = {}
         for (tag, file, modified) in retry2:
             if tag.artist in local: artist = local[tag.artist]
             else:
-                debug('creating local artist %s' % tag.artist)
-                artist = Artist(name=tag.artist)
-                session.add(artist)
+                artist=finder.local_artist(session, tag.artist)
                 local[tag.artist] = artist
             yield add_track(artist, tag.title, tag.track, album, file, modified)
 

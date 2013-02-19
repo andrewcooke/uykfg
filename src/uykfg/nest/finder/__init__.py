@@ -172,6 +172,16 @@ class Finder:
         return session.query(NestArtist)\
                 .filter(NestArtist.artists.any(id=artist.id)).one()
 
+    def local_artist(self, session, id3name):
+        for artist in session.query(Artist).filter(Artist.name == id3name):
+            if not session.query(NestArtist).filter(NestArtist.artists.any(artist)).count():
+                debug('existing local artist %s' % id3name)
+                return artist
+        debug('creating local artist %s' % id3name)
+        artist = Artist(name=id3name)
+        session.add(artist)
+        return artist
+
     def delete_artist(self, session, artist):
         try:
             nest_artist = self._nest_artist_from_music_artist(session, artist)
