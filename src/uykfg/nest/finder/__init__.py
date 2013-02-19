@@ -24,30 +24,6 @@ def distinct_artists(artists):
             known.add(id)
 
 
-#TEMPLATES = lmap(compile, [
-#    r'([^&,+/]+?)\s*[&,+/]',
-#    r'[^&,+/]+[&,+/]\s*([^&,+/]+)',
-#    r'[^&,+/]+[&,+/][^&,+/]+[&,+/]\s*([^&,+/]+)',
-#    r'[^&,+/]+[&,+/][^&,+/]+[&,+/][^&,+/]+[&,+/]\s*([^&,+/]+)',
-#    r'[^&,+/]+[&,+/][^&,+/]+[&,+/][^&,+/]+[&,+/][^&,+/]+[&,+/]\s*([^&,+/]+)',
-#    r'[^&,+/]+[&,+/][^&,+/]+[&,+/][^&,+/]+[&,+/][^&,+/]+[&,+/][^&,+/]+[&,+/]\s*([^&,+/]+)',
-#    r'(.+?)[,\s]+(?:[Aa][Nn][Dd]|[Yy]|[Ii]|[Vv][Ss]|[Ff][Tt].?|[Ff][Ee][Aa][Tt].?|[Ff]eaturing|-|[Ww]ith|[Aa][Kk][Aa])\s+',
-#    r'.*[,\s]+(?:[Aa][Nn][Dd]|[Yy]|[Ii]|[Vv][Ss]|[Ff][Tt].?|[Ff][Ee][Aa][Tt].?|[Ff]eaturing|-|[Ww]ith|[Aa][Kk][Aa])\s+(.+)',
-#    r'(?:[Tt]he\s+)?(.+)\s+[Oo]rchestra',
-#    r'(?:[Tt]he\s+)?(.+)\s+[Bb]and',
-#    r'([^()]+)\s*\([^)]*\)',
-#])
-#
-#def possible_names(artist):
-#    yield artist
-#    for template in TEMPLATES:
-#        match = template.match(artist)
-#        if match:
-#            result = match.group(1)
-#            debug('matched %s on %s to give %s' % (template.pattern, artist, result))
-#            yield result
-
-
 DROP_TRAILING_PARENS = compile(r'(.{6,}?)\s*\([^)]+\)\s*$')
 UNWRAP = compile(r'(?:\s*[Tt]he\s+)?(.+)\s+(?:[Oo]rchestra|[Bb]and)[\s|$]')
 SPLIT = compile(r'(.+?)(?:&|,|\+|/|[,\s]+(?:[Aa][Nn][Dd]|[Yy]|[Ii]|[Vv][Ss]|[Ff][Tt].?|[Ff][Ee][Aa][Tt].?|[Ff]eaturing|-|[Ww]ith|[Aa][Kk][Aa])\s+)(.+)')
@@ -107,7 +83,7 @@ class Finder:
         nest_artist = self._nest_artist(session, nest_id, nest_name)
         for artist in nest_artist.artists:
             if artist.name == id3_name: return artist
-        return self._music_artist(session, id3_name)
+        return self._music_artist(session, nest_artist, id3_name)
 
     def _nest_artist(self, session, nest_id, nest_name):
         try:
