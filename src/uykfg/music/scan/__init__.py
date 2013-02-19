@@ -196,7 +196,7 @@ def cull_artists(session, finder):
     warning('removing %d unused artists' % artists.count())
     for artist in artists.all():
         session.query(Link).filter(or_(Link.src == artist, Link.dst == artist)).delete()
-        artist.tags.delete()
+        for tag in artist.tags: artist.tags.remove(tag)
         finder.delete_artist(session, artist)
         session.delete(artist)
     session.commit()
