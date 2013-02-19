@@ -17,8 +17,7 @@ def add(count, names):
     tracks = session.query(Track)
     for name in names:
         debug('filtering by %s' % name)
-        artist = aliased(Artist)
-        tracks = tracks.join((artist, artist.id == Track.artist_id)).join(artist.tags).filter(artist.tags.any(text=name))
+        tracks = session.query(Track).join(Artist).join(Artist.tags).filter(Track.in_(tracks), Artist.tags.any(text=name))
     tracks = tracks.order_by(random()).limit(count)
     add_tracks(session, config, tracks.all())
 
