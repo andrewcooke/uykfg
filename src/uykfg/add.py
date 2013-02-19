@@ -1,4 +1,5 @@
 
+from logging import debug
 from sys import argv
 
 from sqlalchemy.sql.functions import random
@@ -14,7 +15,9 @@ def add(count, names):
     config = Config.default()
     session = startup(config)
     tracks = session.query(Track).join(Artist).join(Artist.tags)
-    for name in names: tracks = tracks.filter(Tag.text == name)
+    for name in names:
+        debug('filtering by %s' % name)
+        tracks = tracks.filter(Tag.text == name)
     tracks = tracks.order_by(random()).limit(count)
     add_tracks(session, config, tracks.all())
 
