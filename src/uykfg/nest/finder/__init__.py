@@ -1,5 +1,5 @@
 
-from logging import debug, warning
+from logging import debug, warning, error
 from urllib.error import URLError
 from collections import Counter
 from re import compile
@@ -76,7 +76,8 @@ class Finder:
             try:
                 return self._create_artist(session, artist,
                     *next(self._song_search(title, artist=name)))
-            except (StopIteration, URLError): pass
+            except StopIteration: pass
+            except URLError as e: error('find_track_artist: %s' % e)
         raise FinderError(artist)
 
     def _create_artist(self, session, id3_name, nest_id, nest_name):
@@ -145,7 +146,9 @@ class Finder:
 
     def find_artist(self, session, artist):
         try: return self._create_artist(session, artist, *self._artist_search(artist))
-        except (IndexError, AttributeError, URLError): raise FinderError(artist)
+        except (IndexError, AttributeError, URLError) as e:
+            error('find_artist: %s' % e)
+            raise FinderError(artist)
 
     def _artist_search(self, artist):
         artist = unpack(self._api('artist', 'search', name=artist,
