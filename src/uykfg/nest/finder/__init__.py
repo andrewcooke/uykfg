@@ -103,8 +103,7 @@ class Finder:
         debug('creating artist %s' % id3_name)
         artist = Artist(name = id3_name)
         session.add(artist)
-        for tag in self._tags(session, nest_artist): artist.tags.append(tag)
-        debug('tags for %s: %s' % (artist.name, ', '.join(tag.text for tag in artist.tags)))
+        self._append_tags(session, nest_artist, artist)
         nest_artist.artists.append(artist)
         return artist
 
@@ -120,10 +119,14 @@ class Finder:
                 session.add(tag)
             yield tag
 
+    def _append_tags(self, session, nest_artist, artist):
+        for tag in self._tags(session, nest_artist): artist.tags.append(tag)
+        debug('tags for %s: %s' % (artist.name, ', '.join(tag.text for tag in artist.tags)))
+
     def _reset_tags(self, session, nest_artist, artist):
         debug('reset tags for %s' % artist.name)
         for tag in artist.tags: artist.tags.remove(tag)
-        for tag in self._tags(session, nest_artist): artist.tags.append(tag)
+        self._append_tags(session, nest_artist, artist)
 
     def _song_search(self, title, artist=None, results=1):
         params = {'title': title, 'results': results, 'sort': 'artist_familiarity-desc'}
