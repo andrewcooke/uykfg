@@ -91,7 +91,7 @@ class Finder:
                     tested.add(track.artist)
                     self._nest_artist_from_music_artist(session, track.artist)
             except NoResultFound:
-                warning('no nest artist for %s' % track.artist.name)
+                debug('no nest artist for %s' % track.artist.name)
                 return True
         return False
 
