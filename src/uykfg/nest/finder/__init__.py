@@ -1,6 +1,6 @@
 
 from logging import debug, warning, error
-from urllib.error import URLError
+from urllib.error import URLError, HTTPError
 from collections import Counter
 from re import compile
 

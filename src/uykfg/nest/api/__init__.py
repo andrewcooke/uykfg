@@ -1,7 +1,8 @@
 
-from logging import debug, warning
+from logging import debug, warning, error
 from sys import stderr
 from time import time, sleep
+from urllib.error import HTTPError
 from urllib.parse import urlencode, quote, urlunparse
 from urllib.request import urlopen
 from uykfg.support.cache import Fallback
@@ -65,7 +66,18 @@ class RateLimitingApi:
         '''
         url = self._build_url(api, method, **kargs)
         self._wait_until()
+        retry = 2
         try:
-            return self._do_request(url)
+            while retry:
+                try:
+                    return self._do_request(url)
+                except HTTPError as e:
+                    error(e)
+                    if retry:
+                        debug('retrying in 60s')
+                        retry -= 1
+                        sleep(60)
+                    else:
+                        raise e
         except Exception as e:
             raise Fallback(e)
