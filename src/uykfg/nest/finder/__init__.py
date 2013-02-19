@@ -146,9 +146,9 @@ class Finder:
 
     def find_artist(self, session, artist):
         try: return self._create_artist(session, artist, *self._artist_search(artist))
-        except (IndexError, AttributeError, URLError) as e:
-            error('find_artist: %s' % e)
-            raise FinderError(artist)
+        except URLError as e: error('find_artist: %s' % e)
+        except (IndexError, AttributeError): pass
+        raise FinderError(artist)
 
     def _artist_search(self, artist):
         artist = unpack(self._api('artist', 'search', name=artist,
