@@ -3,7 +3,7 @@ from sys import argv
 from sqlalchemy.orm.exc import NoResultFound
 
 from uykfg.music.db import startup
-from uykfg.music.db.catalogue import Artist
+from uykfg.music.db.catalogue import Artist, Album, Track
 from uykfg.nest.db import NestArtist
 from uykfg.support.configure import Config
 
@@ -17,6 +17,10 @@ def show(names):
             except NoResultFound: nest_artist = 'no nest artist'
             print('%s (%s)' % (artist.name, nest_artist.name))
             print(' tags:\n  %s' % ' '.join('"%s"' % tag.text for tag in artist.tags))
+            print(' albums:')
+            for album in session.query(Album).join(Track).join(Artist)\
+                    .filter(Artist.id == artist.id).distinct().all():
+                print('  %s' % album.name)
 
 
 if __name__ == '__main__':
