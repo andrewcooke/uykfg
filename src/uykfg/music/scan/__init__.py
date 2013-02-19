@@ -101,7 +101,7 @@ def add_album(session, finder, path, files):
         except KeyboardInterrupt as e: raise e
         except Exception as e:
             # don't access objects here as they may raise more errors
-            error('error adding %s' % path)
+            error('error adding %s: %s' % (path, e))
         # if no tracks, or error, discard
         session.rollback()
     else:
