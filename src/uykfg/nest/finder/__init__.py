@@ -123,6 +123,7 @@ class Finder:
         artist = Artist(name = id3_name)
         session.add(artist)
         for tag in self._tags(session, nest_artist): artist.tags.append(tag)
+        debug('tags for %s: %s' % (artist.name, ', '.join(tag.text for tag in artist.tags)))
         nest_artist.artists.append(artist)
         return artist
 
