@@ -85,7 +85,8 @@ class Finder:
         nest_artist = self._nest_artist(session, nest_id, nest_name)
         for artist in nest_artist.artists:
             if artist.name == id3_name:
-                if twice_monthly(): self._check_tags(session, nest_artist, artist)
+                if not artist.tags or twice_monthly():
+                    self._reset_tags(session, nest_artist, artist)
                 return artist
         return self._music_artist(session, nest_artist, id3_name)
 
@@ -119,7 +120,7 @@ class Finder:
                 session.add(tag)
             yield tag
 
-    def _check_tags(self, session, nest_artist, artist):
+    def _reset_tags(self, session, nest_artist, artist):
         for tag in artist.tags: artist.tags.remove(tag)
         for tag in self._tags(session, nest_artist): artist.tags.add(tag)
 

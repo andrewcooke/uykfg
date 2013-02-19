@@ -28,6 +28,7 @@ from stagger.tags import read_tag
 
 from uykfg.music.db.catalogue import Album, Track, Artist
 from uykfg.music.db.network import Link
+from uykfg.music.db.tags import Tag
 from uykfg.nest.finder import FinderError
 from uykfg.support import twice_monthly
 from uykfg.support.io import getimtime
@@ -42,6 +43,7 @@ def scan_all(session, finder, config):
     for path in remaining: delete_album(session, remaining[path])
     cull_albums(session)
     cull_artists(session, finder)
+    cull_tags(session)
     debug('done!')
 
 def candidates(root):
@@ -206,6 +208,12 @@ def cull_albums(session):
     albums = session.query(Album).filter(Album.tracks == None)
     warning('removing %d unused albums' % albums.count())
     albums.delete(synchronize_session=False)
+    session.commit()
+
+def cull_tags(session):
+    tags = session.query(Tag).filter(Tag.artists == None)
+    warning('removing %d unused tags' % tags.count())
+    tags.delete(synchronize_session=False)
     session.commit()
 
 def get_tag(path):
