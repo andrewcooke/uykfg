@@ -7,5 +7,3 @@ do
 done
 source env/bin/activate
 bash -c "PYTHONPATH=src python src/uykfg/add.py $PARAMS"
-
-
