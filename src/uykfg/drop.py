@@ -24,5 +24,5 @@ def drop(name):
 
 
 if __name__ == '__main__':
-    assert len(argv) == 2
+    assert len(argv) == 2, repr(argv)
     drop(argv[1])
