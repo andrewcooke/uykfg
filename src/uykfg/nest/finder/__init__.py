@@ -109,7 +109,7 @@ class Finder:
                 'response', 'terms'):
             text = result['name']
             try:
-                tag = session.query(Tag).filter(text == text).one()
+                tag = session.query(Tag).filter(Tag.text == text).one()
             except NoResultFound:
                 tag = Tag(text=text)
                 session.add(tag)
