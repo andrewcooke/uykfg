@@ -1,11 +1,9 @@
 
 from logging import warning, info
 from sys import argv
-from sqlalchemy import or_
 
 from uykfg.music.db import startup
 from uykfg.music.db.catalogue import Artist, Track, Album
-from uykfg.music.db.network import Link
 from uykfg.music.scan import cull_artists, cull_albums
 from uykfg.nest.finder import Finder
 from uykfg.support.configure import Config

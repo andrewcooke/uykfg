@@ -100,7 +100,8 @@ def add_album(session, finder, path, files):
                 warning('no tracks for %s' % path)
         except KeyboardInterrupt as e: raise e
         except Exception as e:
-            error('error adding %s: %s' % (album, e))
+            # don't access objects here as they may raise more errors
+            error('error adding %s' % path)
         # if no tracks, or error, discard
         session.rollback()
     else:
@@ -195,6 +196,7 @@ def cull_artists(session, finder):
     warning('removing %d unused artists' % artists.count())
     for artist in artists.all():
         session.query(Link).filter(or_(Link.src == artist, Link.dst == artist)).delete()
+        artist.tags.delete()
         finder.delete_artist(session, artist)
         session.delete(artist)
     session.commit()

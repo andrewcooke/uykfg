@@ -8,6 +8,7 @@ from sqlalchemy.orm.exc import NoResultFound
 
 from uykfg.music.db import startup
 from uykfg.music.db.catalogue import Artist
+from uykfg.music.db.tags import Tag
 from uykfg.nest.api import RateLimitingApi
 from uykfg.nest.db import NestArtist
 from uykfg.support.cache import Cache
@@ -97,24 +98,43 @@ class Finder:
     def find_track_artist(self, session, artist, title):
         for name in possible_names(artist):
             try:
-                return self._artist(session, artist, *next(self._song_search(title, artist=name)))
+                return self._create_artist(session, artist,
+                    *next(self._song_search(title, artist=name)))
             except (StopIteration, URLError): pass
         raise FinderError(artist)
 
-    def _artist(self, session, id3_name, nest_id, nest_name):
+    def _create_artist(self, session, id3_name, nest_id, nest_name):
+        nest_artist = self._nest_artist(session, nest_id, nest_name)
+        for artist in nest_artist.artists:
+            if artist.name == id3_name: return artist
+        return self._music_artist(session, id3_name)
+
+    def _nest_artist(self, session, nest_id, nest_name):
         try:
             nest_artist = session.query(NestArtist).filter(NestArtist.id == nest_id).one()
         except NoResultFound:
             debug('creating nest artist %s:%s' % (nest_name, nest_id))
             nest_artist = NestArtist(id=nest_id, name=nest_name)
             session.add(nest_artist)
-        for artist in nest_artist.artists:
-            if artist.name == id3_name: return artist
+        return nest_artist
+
+    def _music_artist(self, session, nest_artist, id3_name):
         debug('creating artist %s' % id3_name)
         artist = Artist(name = id3_name)
         session.add(artist)
+        for tag in self._tags(session, nest_artist): artist.tags.append(tag)
         nest_artist.artists.append(artist)
         return artist
+
+    def _tags(self, session, nest_artist):
+        for result in unpack(self._api('artist', 'list_terms'), 'response', 'terms'):
+            text = result['name']
+            try:
+                tag = session.query(Tag).filter(text == text).one()
+            except NoResultFound:
+                tag = Tag(text=text)
+                session.add(tag)
+            yield tag
 
     def _song_search(self, title, artist=None, results=1):
         params = {'title': title, 'results': results, 'sort': 'artist_familiarity-desc'}
@@ -139,13 +159,13 @@ class Finder:
             (id, name), score = artists.most_common(1)[0]
             if score > 2:
                 debug('voted for %s:%s (%d)' % (name, id, score))
-                return self._artist(session, artist, id, name)
+                return self._create_artist(session, artist, id, name)
             else:
                 debug('inconclusive vote (%s: %d)' % (name, score))
         raise FinderError(', '.join(titles))
 
     def find_artist(self, session, artist):
-        try: return self._artist(session, artist, *self._artist_search(artist))
+        try: return self._create_artist(session, artist, *self._artist_search(artist))
         except (IndexError, AttributeError, URLError): raise FinderError(artist)
 
     def _artist_search(self, artist):

@@ -34,6 +34,7 @@ class Artist(__Common):
 
     __tablename__ = 'music_artists'
     new = Column(Boolean, nullable=False, default=True)
+    tags = relationship('Tag', secondary='music_artists_and_music_tags')
 
 
 class Album(__Common):

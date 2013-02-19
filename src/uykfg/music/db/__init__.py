@@ -8,7 +8,9 @@ from uykfg.music.db.catalogue import TableBase
 
 
 def startup(config):
+    import uykfg.music.db.catalogue # force detection
     import uykfg.music.db.network # force detection
+    import uykfg.music.db.tags # force detection
     metadata = TableBase.metadata
     debug('creating engine for %s' % config.db_url)
     engine = create_engine(config.db_url)
