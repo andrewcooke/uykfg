@@ -121,8 +121,9 @@ class Finder:
             yield tag
 
     def _reset_tags(self, session, nest_artist, artist):
+        debug('reset tags for %s' % artist.name)
         for tag in artist.tags: artist.tags.remove(tag)
-        for tag in self._tags(session, nest_artist): artist.tags.add(tag)
+        for tag in self._tags(session, nest_artist): artist.tags.append(tag)
 
     def _song_search(self, title, artist=None, results=1):
         params = {'title': title, 'results': results, 'sort': 'artist_familiarity-desc'}
@@ -132,7 +133,7 @@ class Finder:
         match = DROP_TRAILING_PARENS.match(title)
         if match:
             title = match.group(1)
-            debug('retrying with %s' % title)
+            debug(' retrying with %s' % title)
             for id, name in self._song_search(title, artist, results):
                 yield id, name
 
