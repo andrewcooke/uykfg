@@ -104,7 +104,9 @@ class Finder:
         return artist
 
     def _tags(self, session, nest_artist):
-        for result in unpack(self._api('artist', 'list_terms'), 'response', 'terms'):
+        for result in unpack(
+                self._api('artist', 'terms', id=nest_artist.id, sort='weight'),
+                'response', 'terms'):
             text = result['name']
             try:
                 tag = session.query(Tag).filter(text == text).one()
