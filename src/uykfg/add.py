@@ -14,11 +14,11 @@ from uykfg.support.configure import Config
 def add(count, names):
     config = Config.default()
     session = startup(config)
-    tracks = session.query(Track)
+    tracks = session.query(Track.id)
     for name in names:
         debug('filtering by %s' % name)
-        tracks = session.query(Track).join(Artist).join(Artist.tags).filter(Track.id.in_(tracks), Artist.tags.any(text=name))
-    tracks = tracks.order_by(random()).limit(count)
+        tracks = session.query(Track.id).join(Artist).join(Artist.tags).filter(Track.id.in_(tracks), Artist.tags.any(text=name))
+    tracks = session.query(Track).filter(Track.id.in_(tracks)).order_by(random()).limit(count)
     add_tracks(session, config, tracks.all())
 
 
