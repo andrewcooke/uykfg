@@ -6,15 +6,14 @@ from uykfg.music.db.catalogue import Artist
 from uykfg.support.configure import Config
 
 
-def show(name):
+def show(names):
     config = Config.default()
     session = startup(config)
-    for artist in session.query(Artist).filter(Artist.name == name).all():
-        print(artist.name)
-        for tag in artist.values:
-            print(' %s' % tag.text)
+    for name in names:
+        for artist in session.query(Artist).filter(Artist.name == name).all():
+            print(artist.name)
+            print(' tags:\n  %s' % ' '.join('"%s"' % tag.text for tag in artist.tags))
 
 
 if __name__ == '__main__':
-    assert len(argv) == 2
-    show(argv[1])
+    show(argv[1:])
