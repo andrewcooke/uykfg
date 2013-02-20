@@ -20,7 +20,7 @@ def add(count, names):
         debug('filtering by %s' % name)
         tracks = session.query(Track.id).join(Artist).join(Artist.tags)
         if name.startswith('-'):
-            tracks = tracks.filter(Track.id.in_(tracks), not_(Artist.tags.any(text=name)))
+            tracks = tracks.filter(Track.id.in_(tracks), not_(Artist.tags.any(text=name[1:])))
         else:
             tracks = tracks.filter(Track.id.in_(tracks), Artist.tags.any(text=name))
     tracks = session.query(Track).filter(Track.id.in_(tracks)).order_by(random()).limit(count)

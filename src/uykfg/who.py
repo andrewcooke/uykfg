@@ -17,7 +17,7 @@ def who(names):
         debug('filtering by %s' % name)
         artists = session.query(Artist.id).join(Artist.tags)
         if name.startswith('-'):
-            artists = artists.filter(Artist.id.in_(artists), not_(Artist.tags.any(text=name)))
+            artists = artists.filter(Artist.id.in_(artists), not_(Artist.tags.any(text=name[1:])))
         else:
             artists = artists.filter(Artist.id.in_(artists), Artist.tags.any(text=name))
     for artist in session.query(Artist).filter(Artist.id.in_(artists)).order_by(Artist.name):
