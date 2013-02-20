@@ -1,6 +1,7 @@
 
 from logging import debug
 from sys import argv
+from sqlalchemy import not_
 from sqlalchemy.orm import aliased
 
 from sqlalchemy.sql.functions import random
@@ -17,7 +18,11 @@ def add(count, names):
     tracks = session.query(Track.id)
     for name in names:
         debug('filtering by %s' % name)
-        tracks = session.query(Track.id).join(Artist).join(Artist.tags).filter(Track.id.in_(tracks), Artist.tags.any(text=name))
+        tracks = session.query(Track.id).join(Artist).join(Artist.tags)
+        if name.startswith('-'):
+            tracks = tracks.filter(Track.id.in_(tracks), not_(Artist.tags.any(text=name)))
+        else:
+            tracks = tracks.filter(Track.id.in_(tracks), Artist.tags.any(text=name))
     tracks = session.query(Track).filter(Track.id.in_(tracks)).order_by(random()).limit(count)
     add_tracks(session, config, tracks.all())
 
