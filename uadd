@@ -1,5 +1,26 @@
 #!/bin/bash
 
+if [ $# -eq 0 ]
+then
+    cat <<EOF
+
+List 1 or more tracks from artists that match the given tags.  Tags with
+spaces must be quoted and tags to be excluded must be prefixed with "-".
+
+The number of tracks to add is an optional first argument.  If omitted a
+single track will be added.
+
+Use uwho to see which artists will be included and ushow to find tags for
+a given artist.
+
+Usage:
+
+  $0 [n] blues "acid jazz" -pop
+
+EOF
+    exit 1
+fi
+
 PARAMS=""
 for PARAM in "$@"
 do

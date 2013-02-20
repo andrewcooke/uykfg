@@ -1,5 +1,20 @@
 #!/bin/bash
 
+if [ $# -eq 0 ]
+then
+    cat <<EOF
+
+List artists that match the given tags.  Tags with spaces must be quoted and
+tags to be excluded must be prefixed with "-".
+
+Usage:
+
+  $0 blues "acid jazz" -pop
+
+EOF
+    exit 1
+fi
+
 PARAMS=""
 for PARAM in "$@"
 do

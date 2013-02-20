@@ -1,5 +1,19 @@
 #!/bin/bash
 
+if [ $# -eq 0 ]
+then
+    cat <<EOF
+
+Show information about the given artists.  Names with spaces must be quoted.
+
+Usage:
+
+  $0 U2 "The Beatles"
+
+EOF
+    exit 1
+fi
+
 PARAMS=""
 for PARAM in "$@"
 do
