@@ -21,6 +21,7 @@ EOF
     exit 1
 fi
 
+cd "$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 PARAMS=""
 for PARAM in "$@"
 do
