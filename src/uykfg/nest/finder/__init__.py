@@ -111,13 +111,14 @@ class Finder:
         for result in unpack(
                 self._api('artist', 'terms', id=nest_artist.id, sort='weight'),
                 'response', 'terms'):
-            text = result['name']
-            try:
-                tag = session.query(Tag).filter(Tag.text == text).one()
-            except NoResultFound:
-                tag = Tag(text=text)
-                session.add(tag)
-            yield tag
+            if float(result['weight']) > 0.25:
+                text = result['name']
+                try:
+                    tag = session.query(Tag).filter(Tag.text == text).one()
+                except NoResultFound:
+                    tag = Tag(text=text)
+                    session.add(tag)
+                yield tag
 
     def _append_tags(self, session, nest_artist, artist):
         for tag in self._tags(session, nest_artist): artist.tags.append(tag)
