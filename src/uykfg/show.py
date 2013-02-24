@@ -4,6 +4,7 @@ from sqlalchemy.orm.exc import NoResultFound
 
 from uykfg.music.db import startup
 from uykfg.music.db.catalogue import Artist, Album, Track
+from uykfg.music.db.network import Link
 from uykfg.nest.db import NestArtist
 from uykfg.support.configure import Config
 
@@ -21,6 +22,12 @@ def show(names):
             for album in session.query(Album).join(Track).join(Artist)\
                     .filter(Artist.id == artist.id).distinct().all():
                 print('  %s' % album.name)
+            print(' linked to:')
+            for link in session.query(Link).filter(Link.src == artist):
+                print('  %s' % link.dst.name)
+            print(' linked from:')
+            for link in session.query(Link).filter(Link.dst == artist):
+                print('  %s' % link.src.name)
 
 
 if __name__ == '__main__':
