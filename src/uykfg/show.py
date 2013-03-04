@@ -14,9 +14,10 @@ def show(names):
     session = startup(config)
     for name in names:
         for artist in session.query(Artist).filter(Artist.name == name).all():
-            try: nest_artist = session.query(NestArtist).filter(NestArtist.artists.any(id=artist.id)).one()
-            except NoResultFound: nest_artist = 'no nest artist'
-            print('%s (%s)' % (artist.name, nest_artist.name))
+            try:
+                nest_artist = session.query(NestArtist).filter(NestArtist.artists.any(id=artist.id)).one()
+                print('%s (%s)' % (artist.name, nest_artist.name))
+            except NoResultFound: print('%s' % artist.name)
             print(' tags:\n  %s' % ' '.join('"%s"' % tag.text for tag in artist.tags))
             print(' albums:')
             for album in session.query(Album).join(Track).join(Artist)\
