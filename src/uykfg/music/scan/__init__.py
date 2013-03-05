@@ -35,11 +35,12 @@ from uykfg.support.io import getimtime
 from uykfg.support.sequences import seq_and, lfilter
 
 
-def scan_all(session, finder, config):
+def scan_all(session, finder, config, all):
     debug('retrieving all known albums from database.')
     remaining = dict((album.path, album) for album in session.query(Album).all())
+    debug('scanning %s albums.' % 'all' if all else 'changed')
     for path, files in candidates(config.mp3_path):
-        scan_album(session, finder, remaining, path, files)
+        scan_album(session, finder, remaining, path, files, all)
     for path in remaining: delete_album(session, remaining[path])
     cull_albums(session)
     cull_artists(session, finder)
@@ -58,11 +59,11 @@ def candidates(root):
         elif not dirs:
             warning('empty directory at %s' % path)
 
-def scan_album(session, finder, remaining, path, files):
+def scan_album(session, finder, remaining, path, files, all):
     debug('scanning album at %s' % path)
     if path in remaining:
         album = remaining[path]; del remaining[path]
-        if is_unchanged_album(session, finder, album, files): return
+        if not all and is_unchanged_album(session, finder, album, files): return
         delete_album(session, album)
     add_album(session, finder, path, files)
 
