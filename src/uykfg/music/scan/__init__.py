@@ -38,7 +38,7 @@ from uykfg.support.sequences import seq_and, lfilter
 def scan_all(session, finder, config, all):
     debug('retrieving all known albums from database.')
     remaining = dict((album.path, album) for album in session.query(Album).all())
-    debug('scanning %s albums.' % 'all' if all else 'changed')
+    debug('scanning %s albums.' % ('all' if all else 'changed'))
     for path, files in candidates(config.mp3_path):
         scan_album(session, finder, remaining, path, files, all)
     for path in remaining: delete_album(session, remaining[path])
