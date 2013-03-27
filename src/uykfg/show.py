@@ -17,12 +17,21 @@ def show(names):
             try:
                 nest_artist = session.query(NestArtist).filter(NestArtist.artists.any(id=artist.id)).one()
                 print('%s (%s)' % (artist.name, nest_artist.name))
-            except NoResultFound: print('%s' % artist.name)
+            except NoResultFound:
+                nest_artist = None
+                print('%s' % artist.name)
             print(' tags:\n  %s' % ' '.join('"%s"' % tag.text for tag in artist.tags))
             print(' albums:')
             for album in session.query(Album).join(Track).join(Artist)\
                     .filter(Artist.id == artist.id).distinct().all():
                 print('  %s' % album.name)
+            if nest_artist:
+                for other in nest_artist.artists:
+                    if other != artist:
+                        for album in session.query(Album).join(Track).join(Artist)\
+                                .filter(Artist.id == other.id).distinct().all():
+                            print('  %s (as %s)' % (album.name, other.name))
+                        
             print(' linked to:')
             for link in session.query(Link).filter(Link.src == artist):
                 print('  %s' % link.dst.name)

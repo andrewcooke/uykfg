@@ -75,7 +75,7 @@ class Config:
         parser.set(LOG, LEVEL, self.log_level)
         parser.add_section(DATABASE)
         parser.set(DATABASE, URL, self.db_url)
-        parser.set(DATABASE, MAX_LINKS, self.max_links)
+        parser.set(DATABASE, MAX_LINKS, str(self.max_links))
         parser.add_section(MP3)
         parser.set(MP3, PATH, self.mp3_path)
         parser.add_section(ECHONEST)

@@ -25,7 +25,7 @@ def play_links(session, config):
                                    neighbour_track(session,
                                         find_track(session, config.mp3_path, last),
                                         config.max_links))
-                sleep(1)
+                sleep(0.1)
         except KeyboardInterrupt as e: raise e
         except Exception as e:
             warning(e)
