@@ -1,6 +1,6 @@
 
 from logging import debug
-from os import mkdir, link
+from os import link, makedirs
 from os.path import join
 
 from sqlalchemy.sql.functions import random
@@ -23,7 +23,7 @@ def transfer_album(config, root, album):
 
 def transfer_track(src, dst):
     debug('%s => %s' % (src, dst))
-    mkdir(dst)
+    makedirs(dst)
     def transfer(track):
         src2 = join(src, track.path)
         dst2 = join(dst, track.path)
