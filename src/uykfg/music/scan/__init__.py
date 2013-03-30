@@ -85,7 +85,7 @@ def delete_album(session, album):
 
 def add_album(session, finder, path, files):
     data = list(file_data(path, files))
-    titles = set(tag.album for (tag, file, modified) in data)
+    titles = set(tag.album for (tag, file, modified, size) in data)
     if len(titles) == 1:
         try:
             # transaction starts here.
