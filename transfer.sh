@@ -11,9 +11,9 @@ then
     exit 1
 fi
 
-if [ -e "$1" ]
+if [ `ls "$1" | wc` ]
 then
-    echo "$1 exists"
+    echo "$1 contains data"
     exit 1
 else
     mkdir -p "$1"
