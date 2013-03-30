@@ -30,3 +30,4 @@ def transfer_track(src, dst):
         debug('%s -> %s' % (src2, dst2))
         link(src2, dst2)
         return track.size
+    return transfer
