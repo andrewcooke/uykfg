@@ -56,6 +56,7 @@ class Track(__Common):
     file = Column(UnicodeText, nullable=False)
     number = Column(Integer, nullable=False)
     modified = Column(Integer, nullable=False)
+    size = Column(Integer, nullable=False)
 
     def __str__(self):
         return '%s: %s (%s)' % (self.artist.name, self.name, self.album.name)

@@ -1,4 +1,5 @@
 
+from os import stat
 from importlib import import_module
 from os.path import abspath, dirname, getmtime
 
@@ -11,3 +12,6 @@ def module_parent(name):
 
 def getimtime(path):
     return int(getmtime(path))
+
+def getimsize(path):
+    return stat(path).st_size

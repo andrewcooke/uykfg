@@ -31,7 +31,7 @@ from uykfg.music.db.network import Link
 from uykfg.music.db.tags import Tag
 from uykfg.nest.finder import FinderError
 from uykfg.support import twice_monthly
-from uykfg.support.io import getimtime
+from uykfg.support.io import getimtime, getimsize
 from uykfg.support.sequences import seq_and, lfilter
 
 
@@ -116,29 +116,30 @@ def file_data(path, files):
         tag = get_tag(filepath)
         if tag:
             modified = getimtime(filepath)
-            yield tag, file, modified
+            size = getimsize(filepath)
+            yield tag, file, modified, size
 
 def add_tracks(session, finder, album, data):
     retry0, retry1, retry2 = [], [], []
     single_artist = len(set(d[0].artist for d in data)) == 1
     # first, try identify artist with track
     found = False
-    for (tag, file, modified) in data:
+    for (tag, file, modified, size) in data:
         if single_artist and found: # we can reuse this
-            retry0.append((tag, file, modified))
+            retry0.append((tag, file, modified, size))
         else:
             try:
-                yield add_single_track(session, finder, album, tag, file, modified)
+                yield add_single_track(session, finder, album, tag, file, modified, size)
                 found = True
-            except FinderError: retry0.append((tag, file, modified))
+            except FinderError: retry0.append((tag, file, modified, size))
     # now check to see if we identified on a later track (reuse above)
-    for (tag, file, modified) in retry0:
-        try: yield add_album_track(session, album, tag, file, modified)
-        except NoResultFound: retry1.append((tag, file, modified))
+    for (tag, file, modified, size) in retry0:
+        try: yield add_album_track(session, album, tag, file, modified, size)
+        except NoResultFound: retry1.append((tag, file, modified, size))
     # use artist name alone
-    for (tag, file, modified) in retry1:
-        try: yield add_artist(session, finder, album, tag, file, modified)
-        except FinderError: retry2.append((tag, file, modified))
+    for (tag, file, modified, size) in retry1:
+        try: yield add_artist(session, finder, album, tag, file, modified, size)
+        except FinderError: retry2.append((tag, file, modified, size))
     # if we failed for the entire album, and have a single artist, try combining tracks
     if len(retry2) == len(data) and len(data) > 1 and \
        len(set(d[0].artist for d in data)) == 1:
@@ -149,17 +150,17 @@ def add_tracks(session, finder, album, data):
     if retry2:
         warning('%d unconfirmed tracks in %s' % (len(retry2), album.path))
         local = {}
-        for (tag, file, modified) in retry2:
+        for (tag, file, modified, size) in retry2:
             if tag.artist in local: artist = local[tag.artist]
             else:
                 artist=finder.local_artist(session, tag.artist)
                 local[tag.artist] = artist
-            yield add_track(artist, tag.title, tag.track, album, file, modified)
+            yield add_track(artist, tag.title, tag.track, album, file, modified, size)
 
-def add_single_track(session, finder, album, tag, file, modified):
+def add_single_track(session, finder, album, tag, file, modified, size):
     try: artist = get_album_artist(session, tag.artist, album)
     except NoResultFound: artist = add_track_artist(session, finder, tag)
-    return add_track(artist, tag.title, tag.track, album, file, modified)
+    return add_track(artist, tag.title, tag.track, album, file, modified, size)
 
 def get_album_artist(session, name, album):
     return session.query(Artist).join('tracks', 'album')\
@@ -169,26 +170,26 @@ def add_track_artist(session, finder, tag):
     debug('delegating artist %s, track %s to finder' % (tag.artist, tag.title))
     return finder.find_track_artist(session, tag.artist, tag.title)
 
-def add_album_track(session, album, tag, file, modified):
+def add_album_track(session, album, tag, file, modified, size):
     artist = get_album_artist(session, tag.artist, album)
-    return add_track(artist, tag.title, tag.track, album, file, modified)
+    return add_track(artist, tag.title, tag.track, album, file, modified, size)
 
-def add_artist(session, finder, album, tag, file, modified):
+def add_artist(session, finder, album, tag, file, modified, size):
     debug('delegating artist %s to finder' % tag.artist)
     artist = finder.find_artist(session, tag.artist)
-    return add_track(artist, tag.title, tag.track, album, file, modified)
+    return add_track(artist, tag.title, tag.track, album, file, modified, size)
 
-def add_track(artist, title, number, album, file, modified):
+def add_track(artist, title, number, album, file, modified, size):
     debug('creating track %s' % title)
     return Track(artist=artist, album=album,
-        number=number, name=title, file=file, modified=modified)
+        number=number, name=title, file=file, modified=modified, size=size)
 
 def add_album_tracks(session, finder, album, data):
-    titles = [tag.title for (tag, file, modified) in data]
+    titles = [tag.title for (tag, file, modified, size) in data]
     try:
         artist = finder.find_tracks_artist(session, data[0][0].artist, titles)
-        for (tag, file, modified) in data:
-            yield add_track(artist, tag.title, tag.track, album, file, modified)
+        for (tag, file, modified, size) in data:
+            yield add_track(artist, tag.title, tag.track, album, file, modified, size)
     except FinderError:
         warning('no artist found for %s' % album.path)
 
