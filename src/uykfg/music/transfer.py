@@ -17,6 +17,7 @@ def transfer_size(session, config, root, limit):
 def transfer_album(config, root, album):
     assert album.path.startswith(config.mp3_path), 'bad path: %s' % album.path
     delta = album.path[len(config.mp3_path):]
+    while delta.startswith('/'): delta = delta[1:]
     destn = join(root, delta)
     return sum(map(transfer_track(album.path, destn), album.tracks))
 
