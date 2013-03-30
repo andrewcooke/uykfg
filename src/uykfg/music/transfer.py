@@ -25,8 +25,8 @@ def transfer_track(src, dst):
     debug('%s => %s' % (src, dst))
     makedirs(dst)
     def transfer(track):
-        src2 = join(src, track.path)
-        dst2 = join(dst, track.path)
+        src2 = join(src, track.file)
+        dst2 = join(dst, track.file)
         debug('%s -> %s' % (src2, dst2))
         link(src2, dst2)
         return track.size
