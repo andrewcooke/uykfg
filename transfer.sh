@@ -21,3 +21,4 @@ fi
 
 source env/bin/activate
 PYTHONPATH=src python3 src/uykfg/transfer.py $1 $2 2>&1 > ~/log/uykfg-transfer.log &
+tail -10000f ~/log/uykfg-transfer.log
