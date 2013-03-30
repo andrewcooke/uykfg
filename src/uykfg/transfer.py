@@ -13,4 +13,4 @@ def transfer(root, size):
 
 
 if __name__ == '__main__':
-    transfer(argv[1], argv[2])
+    transfer(argv[1], int(argv[2]) * 1e9)
