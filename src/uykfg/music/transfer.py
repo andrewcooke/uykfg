@@ -13,6 +13,7 @@ def transfer_size(session, config, root, limit):
     albums = iter(session.query(Album).order_by(random()).all())
     while total < limit:
         total += transfer_album(config, root, next(albums))
+    debug('transferred %.1f GB' % (total / 1e9))
 
 def transfer_album(config, root, album):
     assert album.path.startswith(config.mp3_path), 'bad path: %s' % album.path
