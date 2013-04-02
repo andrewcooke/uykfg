@@ -74,10 +74,7 @@ as follows:
 
 * `uadd` - Adds random tracks from artists that match the given tag.
 
-Tags can be combined and exclude with a `-` prefix.  So
-
-`uadd 20 blues -pop`
-
+Tags can be combined and exclude with a `-` prefix.  So `uadd 20 blues -pop`
 will add 20 tracks from artists that are tagged with "blues" but *not* taged
 with "pop".
 
