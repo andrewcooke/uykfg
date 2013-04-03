@@ -88,4 +88,13 @@ then be copied to a PMP (iPod etc).
 See Also
 --------
 
-[More on playlists and tags](http://www.acooke.org/cute/TheIdealUs0.html)
+* [More on playlists and tags](http://www.acooke.org/cute/TheIdealUs0.html)
+
+* [Linux software for music](http://www.acooke.org/cute/LinuxSoftw0.html)
+
+* [Lessons learned from this implementation](http://www.acooke.org/cute/EchoNestba0.html)
+
+* [Rate limiting EchoNest calls](http://www.acooke.org/cute/RateLimiti0.html)
+
+* [EchoNest site](http://echonest.com/)
+
