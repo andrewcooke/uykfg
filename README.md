@@ -20,10 +20,10 @@ for easy use.  On the other hand, I think it's pretty awesome and use it all
 the time.
 
 So if you want to use this code, and are happy getting a clone running (it's
-pretty much trivial if you're an experience Python programmer) please email me
-at andrew@acooke.org for the ID (I think the idea is that the program should
-use a single ID in the API; it is designed to self-throttle if multiple users
-are running).
+pretty much trivial if you're an experienced Python programmer) please email
+me at andrew@acooke.org for the EchoNest ID (I think the idea is that the
+program should use a single ID in the API; it is designed to self-throttle if
+multiple users are running).
 
 Maintenance Scripts
 -------------------
