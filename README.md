@@ -74,12 +74,13 @@ as follows:
 
 * `uadd` - Adds random tracks from artists that match the given tag.
 
-Tags can be combined and excluded with a `-` prefix.  So `uadd 20 blues -pop`
-will add 20 tracks from artists that are tagged with "blues" but *not* tagged
-with "pop".
+Tags can be combined and excluded with a `-` prefix.  So `uadd 20 blues fnuk
+-pop` will add 20 tracks from artists that are tagged with "blues" and "funk",
+but *not* tagged with "pop".
 
 PMP script
 ----------
 
-`transfer.sh` will create a directory of links to tracks of a given size,
-selected at random, that can then be compied to a PMP (iPod etc).
+`transfer.sh` will create a directory of artists and albums with links to
+tracks, selected at random, so that the total is of a given size, that can
+then be copied to a PMP (iPod etc).
