@@ -84,3 +84,8 @@ PMP script
 `transfer.sh` will create a directory of artists and albums with links to
 tracks, selected at random, so that the total is of a given size, that can
 then be copied to a PMP (iPod etc).
+
+See Also
+--------
+
+[More on playlists and tags](http://www.acooke.org/cute/TheIdealUs0.html)
