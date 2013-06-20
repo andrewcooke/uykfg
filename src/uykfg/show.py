@@ -13,7 +13,7 @@ def show(names):
     config = Config.default()
     session = startup(config)
     for name in names:
-        for artist in session.query(Artist).filter(Artist.name == name).all():
+        for artist in session.query(Artist).filter(Artist.name.like(name)).all():
             try:
                 nest_artist = session.query(NestArtist).filter(NestArtist.artists.any(id=artist.id)).one()
                 print('%s (%s)' % (artist.name, nest_artist.name))

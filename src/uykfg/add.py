@@ -9,6 +9,7 @@ from sqlalchemy.sql.functions import random
 from uykfg.mpd_.add import add_tracks
 from uykfg.music.db import startup
 from uykfg.music.db.catalogue import Track, Artist
+from uykfg.music.db.tags import Tag
 from uykfg.support.configure import Config
 
 
@@ -20,9 +21,9 @@ def add(count, names):
         debug('filtering by %s' % name)
         query = session.query(Track.id).join(Artist).join(Artist.tags)
         if name.startswith('-'):
-            tracks = query.filter(Track.id.in_(tracks), not_(Artist.tags.any(text=name[1:])))
+            tracks = query.filter(Track.id.in_(tracks), not_(Artist.tags.any(Tag.text.like(name[1:]))))
         else:
-            tracks = query.filter(Track.id.in_(tracks), Artist.tags.any(text=name))
+            tracks = query.filter(Track.id.in_(tracks), Artist.tags.any(Tag.text.like(name)))
     tracks = session.query(Track).filter(Track.id.in_(tracks)).order_by(random()).limit(count)
     add_tracks(session, config, tracks.all())
 
