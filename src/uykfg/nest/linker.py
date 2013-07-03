@@ -55,8 +55,9 @@ class Linker:
                     pass
             if commit: session.commit()
             return links
-        except ValueError:
+        except ValueError as e:
+            warning('%s, so deleting' % e)
             self._api.delete('artist', 'similar', id=id,
                              start=start, results=results-start)
-            raise
+            return []
 
