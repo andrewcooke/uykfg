@@ -130,3 +130,9 @@ class Cache:
     def _delete(self, value):
         self._owner.total_size -= value.size
         self._session.delete(value)
+
+    def delete(self, *args, **kargs):
+        key = encode_key(*args, **kargs)
+        self._discard(self._session.query(CacheData)
+            .filter(CacheData.owner == self._owner, CacheData.key == key)
+            .first())
