@@ -59,5 +59,5 @@ class Linker:
             warning('%s, so deleting' % e)
             self._api.delete('artist', 'similar', id=id,
                              start=start, results=results-start)
-            return []
+            return 0
 
