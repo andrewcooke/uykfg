@@ -98,3 +98,11 @@ See Also
 
 * [EchoNest site](http://echonest.com/)
 
+Stagger
+-------
+
+This software incldues a copy of [Stagger](https://code.google.com/p/stagger)
+which appears to be no longer maintained, and does not install.  The copyright
+remains with the initial author, Karoly Lorentey.  See LICENCE file in the
+stagger directory.
+
