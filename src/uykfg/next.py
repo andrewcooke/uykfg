@@ -56,7 +56,7 @@ def next(constraints):
         tracks = tracks.filter(Track.id.in_(neighbours))
 
     for track in tracks.order_by(random()).limit(count):
-        print(join(track.album.path, track.file))
+        print('file://%s' % join(track.album.path, track.file))
 
 
 if __name__ == '__main__':

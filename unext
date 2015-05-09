@@ -26,7 +26,7 @@ Usage:
 
 Example:
 
-  $0 u:file://current/playing.mp3 t:jazz "T:hip hop"
+  $0 u:file:///current/playing.mp3 t:jazz "T:hip hop"
 
 would print a single URL for a file from an artist related to the artist
 playing the current track, tagged as jazz, and not tagged as "hip hop".
