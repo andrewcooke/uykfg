@@ -1,7 +1,7 @@
 
 from logging import debug
 from sys import argv
-from os.path import split
+from os.path import split, join
 from sqlalchemy import or_
 
 from sqlalchemy.sql.functions import random
@@ -56,7 +56,7 @@ def next(constraints):
         tracks = tracks.filter(Track.id.in_(neighbours))
 
     for track in tracks.order_by(random()).limit(count):
-        print(track)
+        print(join(track.album.path, track.file))
 
 
 if __name__ == '__main__':
