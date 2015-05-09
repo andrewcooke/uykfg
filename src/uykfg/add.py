@@ -2,7 +2,6 @@
 from logging import debug
 from sys import argv
 from sqlalchemy import not_
-from sqlalchemy.orm import aliased
 
 from sqlalchemy.sql.functions import random
 

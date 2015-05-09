@@ -13,7 +13,7 @@ def startup(config):
     import uykfg.music.db.tags # force detection
     metadata = TableBase.metadata
     debug('creating engine for %s' % config.db_url)
-    engine = create_engine(config.db_url)
+    engine = create_engine(config.db_url, echo=True)
     metadata.bind = engine
     debug('creating tables (if missing)')
     metadata.create_all()
