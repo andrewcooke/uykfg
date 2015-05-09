@@ -1,0 +1,45 @@
+#!/bin/bash
+
+if [ $# -eq 0 ]
+then
+    cat <<EOF
+
+Print one or more tracks (file URLS) that match what is given on the
+command line.  If no information is given, give random values.
+
+The number of tracks to print is an optional numerical argument.  If
+omitted a single track will be printed.
+
+Other arguments constrain what tracks can be selected by prefix:
+   a:NAME  only include tracks by named artist(s)
+   A:NAME  exclude tracks by named artist(s)
+   t:TAG   only include tracks with given tag(s)
+   T:TAG   exclude tracks with given tag(s)
+   u:URL   only include tracks by related artists to this file,
+           excluding this file
+
+Usage:
+
+  $0 [n] [constraint...]
+
+  (but at least one argument must be given)
+
+Example:
+
+  $0 u:file://current/playing.mp3 t:jazz "T:hip hop"
+
+would print a single URL for a file from an artist related to the artist
+playing the current track, tagged as jazz, and not tagged as "hip hop".
+
+EOF
+    exit 1
+fi
+
+cd "$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+PARAMS=""
+for PARAM in "$@"
+do
+  PARAMS="${PARAMS} \"${PARAM}\""
+done
+source env/bin/activate
+bash -c "PYTHONPATH=src python3 src/uykfg/next.py $PARAMS"

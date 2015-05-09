@@ -47,7 +47,7 @@ period (between 0 and 30 days).  This, together with random re-processing,
 means that updated data in EchoNest is slowly absorbed into the local
 database (typically within a month).
 
-Playlist Script
+AutoPlay Script
 ---------------
 
 `play.sh` watches the mpd queue and takes action in two cases:
@@ -77,6 +77,12 @@ as follows:
 Tags can be combined and excluded with a `-` prefix.  So `uadd 20 blues funk
 -pop` will add 20 tracks from artists that are tagged with "blues" and "funk",
 but *not* tagged with "pop".
+
+Playlist Script
+---------------
+
+`unext` - Will list files, given various constraints.  So this can be used
+to generate a long playlist, or to generate the "next" song in a related list.
 
 PMP script
 ----------
